@@ -1,0 +1,72 @@
+/* Build an Events table removing all columns that cause duplicate rows */
+CREATE VIEW Events_vw AS
+SELECT "IncidentRootDB_KEY"
+	, "EventID"
+	,  To_Integer ( "EventID")			AS "EventID_Numeric"
+	, "CATEGORY"
+	, CASE 
+		WHEN "SignificantEvent" = 'X' THEN 'Yes' 
+		ELSE 'No' 
+	  END AS "SignificantEvent" 
+	, "LocationID"
+	, CASE 
+		WHEN "EventType" = 'I' THEN 'Incident' 
+		ELSE 'Near Miss' 
+	  END AS "Event Type Description" 
+	, "EventType"
+	, CASE 
+		WHEN "EventStatus"  = '00' 	THEN 'Void'
+		WHEN "EventStatus"  = '01' 	THEN 'New'
+		WHEN "EventStatus"  = '02' 	THEN 'In Progress'
+		WHEN "EventStatus"  = '03' 	THEN 'Closed'
+		WHEN "EventStatus"  = '04' 	THEN 'Reopened'
+										ELSE 'Unknown'
+	  END AS "EventStatusDesc"
+	, CASE 
+		WHEN "EventStatus"  = '00' 	THEN 'Void'
+		WHEN "EventStatus"  = '01' 	THEN 'Open'
+		WHEN "EventStatus"  = '02' 	THEN 'Open'
+		WHEN "EventStatus"  = '03' 	THEN 'Closed'
+		WHEN "EventStatus"  = '04' 	THEN 'Open'
+										ELSE 'Unknown'
+	  END AS "EventStatusOpenClosedDesc"
+	, "FollowUpActivity"
+	, "EventStatus"
+	, "EventManagerID"
+	, "EventManager"
+	, "ReportingPersonFULL_NAME"
+	, "ReportingPersonPOSITION_DESC" AS "ReportingPerson POSITIONDESC"
+	, "ReportingPersonCOMP_ORG_UNIT" AS "ReportingPerson ORGUNIT"
+	, "EventDate"
+	, "EventTime"
+	, CAST(CONCAT( CONCAT ("EventDate", ' '), "EventTime") AS DateTime) As "EventDateTime"
+	, "EventReportDate"
+	, "EventReportTime"
+	, CAST(CONCAT( CONCAT ("EventReportDate", ' '), "EventReportTime") AS DateTime) As "EventReportDateTime"
+	, To_Integer (RIGHT("ReportingPersonID", LENGTH ("ReportingPersonID") -1))  AS "ReportingPersonID"
+	, CASE 
+		WHEN "PrimaryInvolvement"  = 'X' 	THEN 'TasNetworks'
+		WHEN "PrimaryInvolvement"  = '-' 	THEN '3rd Party (not contractor)'
+												ELSE 'Contractor'
+	  END AS "PrimaryInvolvement" 	
+	, "ImmediateActions"
+	, "LocationDescription"
+	, "EventDescription"
+	, "Latitude"
+	, "Longitude"
+	, "ObservationType"
+	, "EventORG_ID"
+	, "ReportingPersonRegion"
+	, "ReportingPersonPERNR"
+	, "EventCreationDate"
+	, "EventCreationTime"
+	, "REPORT_REQ_TS"
+	, "CONFIDENTIAL_TS"
+	, "STREET_HOUSE_NUM"
+	, "POSTAL_CODE"
+	, "CITY"
+	, "COUNTRY"
+	, "REGION"
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS
+WHERE "EventType"  IN ('I','N')
+ORDER BY "EventID" ;
