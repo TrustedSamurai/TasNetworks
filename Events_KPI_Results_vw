@@ -1,5 +1,5 @@
 /* Script to calculate Event related KPIs */
-CREATE VIEW Events_KPI_Results_vw as
+CREATE VIEW Events_KPI_Results_vw AS
 SELECT "IncidentRootDB_KEY"
 	, "EventID"
 	, "EventDateTime"
@@ -11,26 +11,26 @@ SELECT "IncidentRootDB_KEY"
 		ELSE 1
 	  END AS "Days to Increment"
 	, CASE 
-		WHEN DAYNAME("EventDate") = 'FRIDAY' 	THEN Add_Days("EventDateTime", 3)
+		WHEN DAYNAME("EventDate") = 'FRIDAY' 	THEN Add_seconds("EventDateTime", 262800) /* Increment by 3 days and 1 hour - Ed Chetcuti 9/11/2021 */
 		WHEN DAYNAME("EventDate") = 'SATURDAY' 	THEN TO_TIMESTAMP(Concat(To_Varchar(Add_Days ("EventDateTime",3),'YYYY-MM-DD'),' 00:00:00') , 'YYYY-MM-DD HH24:MI:SS')  
 		WHEN DAYNAME("EventDate") = 'SUNDAY' 	THEN TO_TIMESTAMP(Concat(To_Varchar(Add_Days ("EventDateTime",2),'YYYY-MM-DD'),' 00:00:00') , 'YYYY-MM-DD HH24:MI:SS')  
-		ELSE Add_Days("EventDateTime",1)
+		ELSE Add_seconds("EventDateTime", 90000) /* Increment by 25 hours - Ed Chetcuti 9/11/2021 */
 	  END AS "EventReportingDeadline_24HourRule"
 	,CASE 
 		WHEN CASE 
-		WHEN DAYNAME("EventDate") = 'FRIDAY' 	THEN Add_Days("EventDateTime", 3)
+		WHEN DAYNAME("EventDate") = 'FRIDAY' 	THEN Add_seconds("EventDateTime", 262800) /* Increment by 3 days and 1 hour - Ed Chetcuti 9/11/2021 */
 		WHEN DAYNAME("EventDate") = 'SATURDAY' 	THEN TO_TIMESTAMP(Concat(To_Varchar(Add_Days ("EventDateTime",3),'YYYY-MM-DD'),' 00:00:00') , 'YYYY-MM-DD HH24:MI:SS')  
 		WHEN DAYNAME("EventDate") = 'SUNDAY' 	THEN TO_TIMESTAMP(Concat(To_Varchar(Add_Days ("EventDateTime",2),'YYYY-MM-DD'),' 00:00:00') , 'YYYY-MM-DD HH24:MI:SS')  
-		ELSE Add_Days("EventDateTime",1)
+		ELSE Add_seconds("EventDateTime", 90000) /* Increment by 25 hours - Ed Chetcuti 9/11/2021 */
 			 END >= "EventReportDateTime" 		THEN 'Yes'
 	  	ELSE 'No'
 	  END AS "Event Entered In Time"
 	,CASE 
 		WHEN CASE 
-		WHEN DAYNAME("EventDate") = 'FRIDAY' 	THEN Add_Days("EventDateTime", 3)
+		WHEN DAYNAME("EventDate") = 'FRIDAY' 	THEN Add_seconds("EventDateTime", 262800) /* Increment by 3 days and 1 hour - Ed Chetcuti 9/11/2021 */
 		WHEN DAYNAME("EventDate") = 'SATURDAY' 	THEN TO_TIMESTAMP(Concat(To_Varchar(Add_Days ("EventDateTime",3),'YYYY-MM-DD'),' 00:00:00') , 'YYYY-MM-DD HH24:MI:SS')  
 		WHEN DAYNAME("EventDate") = 'SUNDAY' 	THEN TO_TIMESTAMP(Concat(To_Varchar(Add_Days ("EventDateTime",2),'YYYY-MM-DD'),' 00:00:00') , 'YYYY-MM-DD HH24:MI:SS')  
-		ELSE Add_Days("EventDateTime",1)
+		ELSE Add_seconds("EventDateTime", 90000) /* Increment by 25 hours - Ed Chetcuti 9/11/2021 */
 			 END >= "EventReportDateTime" 		THEN 1
 	  	ELSE 0
 	  END AS "Event Entered In Time Numerator"
