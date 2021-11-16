@@ -1,0 +1,80 @@
+/* Injured Persons */
+ CREATE VIEW InjuredPersons_VW AS
+ SELECT DISTINCT  
+	"EventID"
+	,  To_Integer ( "EventID")												AS "EventID_Numeric"
+ 	, CONCAT("EventID","InjuredPersonID")									AS "InjuredPersonKey" 
+	 , To_Integer (RIGHT("InjuredPersonID", LENGTH ("InjuredPersonID") -1)) AS "InjuredPersonID"
+	 , "InjuredPersonID"													AS "InjuredPersonID_Varchar"
+	 , "InjuredPersonFULL_NAME"
+	 , "InjuredPersonPER_GROUP"
+	 , "InjuredPersonPOSITION_DESC"
+	 , "InjuredPersonDISABLE_CH_P_IND"
+	 , "InjuredPersonCOMP_ORG_UNIT"
+	 , "InjuredPersonCOMPANY_DESC"
+	 , "InjuredPersonZZINJURY_CLSN_ID"
+	 , "InjuredPersonInjuryClsDesc"
+	 , "InjuredPersonROLE"
+	 , "RehabWCCASNO"
+	 , "RehabWCENDDA"
+	 , "RehabWCBEGDA"
+	 , "RehabCLMNO"
+	 , "RehabENDDA"
+	 , "RehabBEGDA"
+ FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED 
+WHERE "EventManager" IS NOT NULL ;
+  
+  
+ /* Injury Details */
+CREATE VIEW InjuredPersons_Details_VW AS
+SELECT DISTINCT  
+ 	"EventID"
+	,  To_Integer ( "EventID")												AS "EventID_Numeric"
+ 	,  CONCAT("EventID","InjuredPersonID")									AS "InjuredPersonKey" 
+	 , To_Integer (RIGHT("InjuredPersonID", LENGTH ("InjuredPersonID") -1)) AS "InjuredPersonID"
+	 , "InjuredPersonID"													AS "InjuredPersonID_Varchar"
+	 , "InjuriesOC_INC_TYPE"
+	 , CASE 
+		WHEN "InjuriesOC_INC_TYPE" = '0001' THEN 'Compensable Recordable' 
+		WHEN "InjuriesOC_INC_TYPE" = '0002' THEN 'Non work related event' 
+		WHEN "InjuriesOC_INC_TYPE" = '0003' THEN 'Incident on way to/from work' 
+		WHEN "InjuriesOC_INC_TYPE" = '0004' THEN 'Customer injury' 
+		WHEN "InjuriesOC_INC_TYPE" = '0005' THEN 'Compensable Non-Recordable' 
+		ELSE 'Unknown' 
+       END 																	AS "InjuryIncidentType"
+     , "InjuriesINJ_ILL"
+	 , "InjuriesTYPE"
+	 , "InjuriesBODY_PART"
+	 , "InjuriesBODY_SIDE"
+	 , "InjuredPersonDISABLE_CH_P_IND"
+	 , "InjuriesInjuryDescription"
+	 , "InjuriesBodyPartDescription"
+	 , "InjAbsenceTYPE"
+	 , "InjAbsenceSUBTYPE"
+	 , "InjAbsenceSTART_DATE"
+	 , "InjAbsenceEND_DATE"
+	 , "InjAbsenceWORK_DAY_MEAS"
+	 , "InjAbsenceCAL_DAY_MEAS"
+	 , "InjAbsencePERS_NUMBER"
+	 , "InjAbsenceA_LOST_SH_MEAS"
+	 , "InjAbsencePSG"
+	 , "BodyPartText"
+	 , "InjuriesINJ_ORG_PROP_TS"
+	 , "InjuriesINJ_ON_DUTY_TS",
+	 "InjuriesMAIN_TS"
+ FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED 
+WHERE "EventManager" IS NOT NULL; 
+
+
+/* Agency of Injury */
+CREATE VIEW InjuredPersons_AgencyMechanism_VW AS
+SELECT DISTINCT  
+	"EventID"
+	,  To_Integer ( "EventID")												AS "EventID_Numeric"
+	, "AgencyINFLUENCE"
+	, "AgencyDESCRIPTION"
+	, "MechanismINFLUENCE"
+	, "MechanismDESCRIPTION"
+	, "AbsenceWorkDays"
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED 
+WHERE "EventManager" IS NOT NULL;

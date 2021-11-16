@@ -1,0 +1,28 @@
+/* Build a lookup list of Regulators from the Events table */
+CREATE VIEW Events_Regulator_vw AS
+SELECT  
+	"IncidentRootDB_KEY"
+	, "EventID"
+	, "RegulatorREGULATION"
+	, CASE 
+		WHEN "RegulatorREGULATION" = 'ZAHT' 	THEN 'AHT' 
+		WHEN "RegulatorREGULATION" = 'ZAER' 	THEN 'AER' 
+		WHEN "RegulatorREGULATION" = 'ZWST' 	THEN 'WST' 
+		WHEN "RegulatorREGULATION" = 'ZAEMO' 	THEN 'AEMO' 
+		WHEN "RegulatorREGULATION" = 'ZCBOS' 	THEN 'CBOS' 
+		WHEN "RegulatorREGULATION" = 'ZDPIPWE' 	THEN 'DPIPWE' 
+		ELSE 'Other' 
+  	  END AS "Regulator_Abbrev" 
+	, CASE 
+		WHEN "RegulatorREGULATION" = 'ZAHT' 	THEN 'Aboriginal Heritage Tasmania' 
+		WHEN "RegulatorREGULATION" = 'ZAER' 	THEN 'Australian Energy Regulator' 
+		WHEN "RegulatorREGULATION" = 'ZWST' 	THEN 'WorkSafe Tasmania' 
+		WHEN "RegulatorREGULATION" = 'ZAEMO' 	THEN 'Australian Energy Market Operator' 
+		WHEN "RegulatorREGULATION" = 'ZCBOS' 	THEN 'Consumer Building and Occup. Services' 
+		WHEN "RegulatorREGULATION" = 'ZDPIPWE' 	THEN 'Dept. of Primary Industry, Parks, Water & Environment' 
+		ELSE 'Other' 
+  	  END AS "Regulator_Desc" 
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS
+WHERE "EventType"  IN ('I','N') AND "RegulatorREGULATION" IS NOT NULL 
+ORDER BY "EventID" ;
+

@@ -1,0 +1,71 @@
+
+/* contains unique row for each Event Investigation.  Look to Investigation details for more information about root cause, steps etc. */
+CREATE VIEW Investigations_vw AS
+SELECT  Investigation."IncidentRootDB_KEY"
+	, Investigation."EventID"
+	, Investigation."EventDate"
+	, Investigation."EventTime"
+	, Investigation."EventType"
+	, Investigation."EventORG_ID"
+	, CASE 
+		WHEN "PrimaryInvolvement"  = 'X' 	THEN 'TasNetworks'
+		WHEN "PrimaryInvolvement"  = '-' 	THEN '3rd Party (not contractor)'
+											ELSE 'Contractor'
+  END AS "PrimaryInvolvement1"  
+	, CASE 
+		WHEN Investigation."InvSTART_DATE" = '00000000' /* If open date is empty set it to Event Start Date */
+			THEN Investigation."EventDate"
+		ELSE TO_DATE(LEFT(Investigation."InvSTART_DATE",4) ||'-'|| SUBSTRING(Investigation."InvSTART_DATE",5,2) ||'-'|| RIGHT (Investigation."InvSTART_DATE",2),'YYYY-MM-DD')
+	  END AS "InvSTART_DATE"
+	, CASE 
+		WHEN Investigation."InvEND_DATE" = '00000000' AND Investigation."InvSTATUS" = '00'/* If end date is empty and investigation status is VOID set to EventDate */
+			THEN Investigation."EventDate"
+		WHEN Investigation."InvEND_DATE" = '00000000' AND Investigation."InvSTATUS" <> '00'/* If end date is empty and investigation status is NOT VOID set to a future date */
+			THEN CAST (TO_DATE('9999-12-12','YYYY-MM-DD') AS DATE)
+		ELSE CAST (TO_DATE(LEFT("InvEND_DATE",4) ||'-'|| SUBSTRING("InvEND_DATE",5,2) ||'-'|| RIGHT ("InvEND_DATE",2),'YYYY-MM-DD') AS DATE)
+	  END AS "InvEND_DATE"
+	, CASE 
+		WHEN "InvREOPEN_DATE" = '00000000' AND "InvSTART_DATE" = '00000000'/* If reopen date is empty and Investigation Start Date is empty set it to Event Date*/
+			THEN Investigation."EventDate"
+		WHEN "InvREOPEN_DATE" = '00000000' AND "InvSTART_DATE" <> '00000000'/* If reopen date is empty and Investigation Start Date is NOT empty set to Investigation Start Date */
+			THEN TO_DATE(LEFT("InvSTART_DATE",4) ||'-'|| SUBSTRING("InvSTART_DATE",5,2) ||'-'|| RIGHT ("InvSTART_DATE",2),'YYYY-MM-DD')
+		ELSE TO_DATE(LEFT("InvREOPEN_DATE",4) ||'-'|| SUBSTRING("InvREOPEN_DATE",5,2) ||'-'|| RIGHT ("InvREOPEN_DATE",2),'YYYY-MM-DD')
+	  END AS "InvREOPEN_DATE" 
+	, CASE 
+		WHEN "InvEND_DATE" = '00000000' AND "InvSTATUS" = '00'/* If end date is empty and investigation status is VOID set to EventDate + 28 days */
+			THEN Add_Days(Investigation."EventDate",28)
+		WHEN "InvEND_DATE" = '00000000' AND "InvSTATUS" <> '00'/* If end date is empty and investigation status is NOT VOID set to a future date */
+			THEN Add_Days(Investigation."EventDate",28)
+		WHEN Add_Days(Investigation."EventDate",28) < CAST (TO_DATE(LEFT("InvEND_DATE",4) ||'-'|| SUBSTRING("InvEND_DATE",5,2) ||'-'|| RIGHT ("InvEND_DATE",2),'YYYY-MM-DD') AS DATE) /* if Max End date is less than actual end date use Max end date */
+			THEN Add_Days(Investigation."EventDate",28)
+				ELSE CAST (TO_DATE(LEFT("InvEND_DATE",4) ||'-'|| SUBSTRING("InvEND_DATE",5,2) ||'-'|| RIGHT ("InvEND_DATE",2),'YYYY-MM-DD') AS DATE) /* if we get this far then use the actual End Date */
+	  END AS "Investigation Reportable End Date"
+	, Add_Days(Investigation."EventDate",28) AS "Investigation END Deadline 28 days"  /* This is the deadline date for investigations to be completed by */
+	, "InvSTATUS"
+	, CASE 
+		WHEN "InvSTATUS"  = '00' 	THEN 'Void'
+		WHEN "InvSTATUS"  = '01' 	THEN 'New'
+		WHEN "InvSTATUS"  = '02' 	THEN 'In Progress'
+		WHEN "InvSTATUS"  = '03' 	THEN 'Closed'
+		WHEN "InvSTATUS"  = '04' 	THEN 'Reopened'
+										ELSE 'Unknown'
+	  END AS "InvSTATUSDesc"
+	, CASE 
+		WHEN "InvSTATUS"  = '00' 	THEN 'Void'
+		WHEN "InvSTATUS"  = '01' 	THEN 'Open'
+		WHEN "InvSTATUS"  = '02' 	THEN 'Open'
+		WHEN "InvSTATUS"  = '03' 	THEN 'Closed'
+		WHEN "InvSTATUS"  = '04' 	THEN 'Open'
+										ELSE 'Unknown'
+	  END AS "InvSTATUSOpenClosedDesc"	
+	, "InvREQUIRED_TS"
+	, CASE 
+		WHEN "InvREQUIRED_TS"  = '' 	THEN 'No'
+		WHEN "InvREQUIRED_TS"  = '-' 	THEN 'Unknown'
+		WHEN "InvREQUIRED_TS"  = 'X' 	THEN 'Yes'
+								ELSE 'Unknown'
+	  END AS "InvRequiredDesc"	
+	, To_Integer (RIGHT("InvINV_LEAD_ID", LENGTH ("InvINV_LEAD_ID") -1))  AS "InvINV_LEAD_ID"
+	, "InvestigationTEXT"
+	, "InvInvestigationLeadName"
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_INVESTIGATION AS Investigation;

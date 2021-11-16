@@ -1,0 +1,35 @@
+/* Script to calculate Event related KPIs */
+CREATE VIEW Events_KPI_Results_vw as
+SELECT "IncidentRootDB_KEY"
+	, "EventID"
+	, "EventDateTime"
+	, DAYNAME("EventDate") AS "EventDay"
+	, CASE 
+		WHEN DAYNAME("EventDate") = 'SATURDAY' 	THEN 3
+		WHEN DAYNAME("EventDate") = 'SUNDAY' 	THEN 2
+		ELSE 1
+	  END AS "Days to Increment"
+	, CASE 
+		WHEN DAYNAME("EventDate") = 'SATURDAY' 	THEN Add_Days("EventDateTime", 3)
+		WHEN DAYNAME("EventDate") = 'SUNDAY' 	THEN Add_Days("EventDateTime",2)
+		ELSE Add_Days("EventDateTime",1)
+	  END AS "EventReportingDeadline_24HourRule"
+	,CASE 
+		WHEN CASE 
+		WHEN DAYNAME("EventDate") = 'SATURDAY' 	THEN Add_Days("EventDateTime", 3)
+		WHEN DAYNAME("EventDate") = 'SUNDAY' 	THEN Add_Days("EventDateTime",2)
+		ELSE Add_Days("EventDateTime",1)
+			 END >= "EventReportDateTime" 		THEN 'Yes'
+	  	ELSE 'No'
+	  END AS "Event Entered In Time"
+	,CASE 
+		WHEN CASE 
+		WHEN DAYNAME("EventDate") = 'SATURDAY' 	THEN Add_Days("EventDateTime", 3)
+		WHEN DAYNAME("EventDate") = 'SUNDAY' 	THEN Add_Days("EventDateTime",2)
+		ELSE Add_Days("EventDateTime",1)
+			 END >= "EventReportDateTime" 		THEN 1
+	  	ELSE 0
+	  END AS "Event Entered In Time Numerator"
+	, "EventReportDateTime"
+	, 1 AS "Event KPI Count"
+FROM EHS_DA_DMART.EVENTS_VW;

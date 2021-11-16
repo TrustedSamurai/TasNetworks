@@ -1,0 +1,85 @@
+CREATE VIEW Actions_vw as
+SELECT  
+	"IncidentRootDB_KEY"
+	, "EventID"
+	, "EventCATEGORY"
+	, CASE 
+		WHEN "EventStatus"  = '00' 	THEN 'Void'
+		WHEN "EventStatus"  = '01' 	THEN 'New'
+		WHEN "EventStatus"  = '02' 	THEN 'In Progress'
+		WHEN "EventStatus"  = '03' 	THEN 'Closed'
+		WHEN "EventStatus"  = '04' 	THEN 'Reopened'
+										ELSE 'Unknown'
+	  END AS "EventStatusDesc"
+	, CASE 
+		WHEN "EventStatus"  = '00' 	THEN 'Void'
+		WHEN "EventStatus"  = '01' 	THEN 'Open'
+		WHEN "EventStatus"  = '02' 	THEN 'Open'
+		WHEN "EventStatus"  = '03' 	THEN 'Closed'
+		WHEN "EventStatus"  = '04' 	THEN 'Open'
+										ELSE 'Unknown'
+	  END AS "EventStatusOpenClosedDesc"
+	, "EventStatus" 
+	,  "EventDate"
+	, "EventTime"
+	, "EventReportDate"
+	, "EventReportTime"
+	, "EventORG_ID"
+	, "EventManagerID"
+	, "EventManager"
+	, "EventObservationType"
+	, "EventType"
+	, "SignificantEvent"
+	, "EventCreationDate"
+	, "EventLatitude"
+	, "EventLongitude"
+	, To_Integer (RIGHT("ReportingPersonID", LENGTH ("ReportingPersonID") -1))  AS "ReportingPersonID"
+	, "ActionID"
+	, "ActionSTATUS"
+	, "ActionTITLE"
+	, "ActionSUBJECT"
+	, "ActionCATEGORY"
+	, "ActionTYPE"
+	, "ActionPRIORITY"
+	, "ActionDUE_TYPE"
+	, "ActionWF_EXIST_IND"
+	, "ActionDueDate"
+	, "ActionDueTime"
+	, "ActionImpDate"
+	, "ActionImpTime"
+	, "ActionApprDate"
+	, "ActionApprTime"
+	, "Overdue"
+	, "ActionCreateDate"
+	, "ActionCreateTime"
+	, "ActionRESP_IDName"
+	, "ActionRESP_ID"
+	, "ActionRESP_IDPERNR"
+	, "ActionIMPLEM_IDName"
+	, "ActionIMPLEM_ID"
+	, "ActionAPPR_IDName"
+	, "ActionTaskDescription"
+	, "Source"
+	, "SourceDate"
+	, "WorkEnvironmentTEXT"
+	, "ExternalPressureTEXT"
+	, "SafeDrivingTEXT"
+	, "BodyPositionTEXT"
+	, "EquipmentToolsTEXT"
+	, "SourceLocationID"
+	, "ActionReferenceCategory"
+	, "ActionReference"
+	, "ActionProcessStatus"
+	, "ReportingPersonRegion"
+	, "ReportingPersonPERNR"
+	, "EventCreationTime"
+	, "ActionOrgUnit"
+	, "ActionProcessStatusID"
+	, "CountSourceID"
+	, "CountActionID"
+	, CASE 
+		WHEN "EventPrimaryInvolvement"  = 'X' 	THEN 'TasNetworks'
+		WHEN "EventPrimaryInvolvement"  = '-' 	THEN '3rd Party (not contractor)'
+												ELSE 'Contractor'
+  END AS "EventPrimaryInvolvement"  
+FROM EHS_DA_DMART.ER_ACTION_DETAILS;

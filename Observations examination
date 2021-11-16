@@ -1,0 +1,56 @@
+SELECT  
+	"IncidentRootDB_KEY"
+	, "EventID"
+	,  To_Integer ( "EventID")			AS "EventID_Numeric"
+	, CATEGORY	
+	, CASE 
+		WHEN "EventStatus"  = '00' 	THEN 'Void'
+		WHEN "EventStatus"  = '01' 	THEN 'New'
+		WHEN "EventStatus"  = '02' 	THEN 'In Progress'
+		WHEN "EventStatus"  = '03' 	THEN 'Closed'
+		WHEN "EventStatus"  = '04' 	THEN 'Reopened'
+									ELSE 'Unknown'
+	  END 								AS "EventStatusDesc"
+	, "EventStatus"
+	, REPORT_REQ_TS
+	, "EventORG_ID"
+	, "EventDate"
+	, "EventTime"
+	, "EventReportDate"
+	, "EventReportTime"
+	, "EventManagerID"
+	, "EventManager"
+	, "ObservationTypeTEXT"
+	, "ObservationType"
+	, "PrimaryInvolvement"
+	, "IncidentTitle"
+	, "EventDescription"
+	, "FollowUpActivity"
+	, "ImmediateActions"
+	, ZZOC_WORK_ENVIR
+	, ZZOC_EXT_PRESSURE
+	, ZZOC_SAFE_DRIVE
+	, ZZOC_BODY_POS
+	, ZZOC_EQUIP_TOOLS
+	, ZZOC_ENV_SUST
+	, "EnvSustainabilityTEXT"
+	, "WorkEnvironmentTEXT"
+	, "ExternalPressureTEXT"
+	, "SafeDrivingTEXT"
+	, "BodyPositionTEXT"
+	, "EquipmentToolsTEXT"
+	, "SignificantEvent"
+	, "EventCreationDate"
+	, "LocationTEXT"
+	, "ReportingPersonID"
+	, "ReportingPersonFULL_NAME"
+	, "ReportingPersonPER_GROUP"
+	, "ReportingPersonPOSITION_DESC"
+	, "ReportingPersonCOMP_ORG_UNIT"
+	, "Latitude"
+	, "Longitude"
+	, "ReportingPersonRegion"
+	, "ReportingPersonPERNR"
+	, "EventCreationTime"
+FROM EHS_DA_DMART.ER_SAFETYOBS_LZHI_HAZARD_DETAILS
+

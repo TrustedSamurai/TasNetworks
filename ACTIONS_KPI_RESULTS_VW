@@ -1,0 +1,23 @@
+CREATE VIEW "ACTIONS_KPI_RESULTS_VW" as
+SELECT 
+	"EventID"
+	, "ActionID"
+	, CASE 
+		WHEN length("ActionDueDate") = 0 THEN 'No' /* No Action Due Date, so ignore this */
+		ELSE 'Yes'
+	  END AS "Include in Reporting?"
+	, "Overdue"  AS "Action Overdue?"
+	, "ActionDueDate"
+	, "ActionImpDate"
+	, "ActionApprDate"
+	  , CASE 
+		WHEN length("ActionImpDate") = 0 THEN 'No' /* Action not yet implemented */
+		ELSE 'Yes'
+	  END AS "Action Implemented?"
+	, CASE 
+		WHEN CASE WHEN length("ActionImpDate") = 0 THEN NOW() ELSE "ActionImpDate" end <= "ActionDueDate" THEN 1 /* Action implemented by due date */
+		ELSE 0
+	  END AS "ACTION Implemented IN Time Numerator" 
+	,1 AS "ACTION KPI Count"
+	,"ActionProcessStatus" 
+FROM EHS_DA_DMART.ACTIONS_VW;

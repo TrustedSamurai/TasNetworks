@@ -1,0 +1,52 @@
+/* Create Investigation table.  Note, this has duplicate EventID due to the Root Causes and 
+ Investigation Steps.  It's possible these should be split out into their own table. */
+CREATE VIEW Investigation_details_vw AS
+SELECT  "IncidentRootDB_KEY"
+	, "EventID"
+	, "EventDate"
+	, CASE 
+		WHEN "InvSTART_DATE" = '00000000' /* If open date is empty set it to Event Start Date */
+			THEN "EventDate"
+		ELSE TO_DATE(LEFT("InvSTART_DATE",4) ||'-'|| SUBSTRING("InvSTART_DATE",5,2) ||'-'|| RIGHT ("InvSTART_DATE",2),'YYYY-MM-DD')
+	  END AS "InvSTART_DATE"
+	, CASE 
+		WHEN "InvEND_DATE" = '00000000' AND "InvSTATUS" = '00'/* If end date is empty and investigation status is VOID set to EventDate */
+			THEN "EventDate"
+		WHEN "InvEND_DATE" = '00000000' AND "InvSTATUS" <> '00'/* If end date is empty and investigation status is NOT VOID set to a future date */
+			THEN TO_DATE('9999-12-12','YYYY-MM-DD')
+		ELSE TO_DATE(LEFT("InvEND_DATE",4) ||'-'|| SUBSTRING("InvEND_DATE",5,2) ||'-'|| RIGHT ("InvEND_DATE",2),'YYYY-MM-DD')
+	  END AS "InvEND_DATE"
+	, CASE 
+		WHEN "InvREOPEN_DATE" = '00000000' AND "InvSTART_DATE" = '00000000'/* If reopen date is empty and Investigation Start Date is empty set it to Event Date*/
+			THEN "EventDate"
+		WHEN "InvREOPEN_DATE" = '00000000' AND "InvSTART_DATE" <> '00000000'/* If reopen date is empty and Investigation Start Date is NOT empty set to Investigation Start Date */
+			THEN TO_DATE(LEFT("InvSTART_DATE",4) ||'-'|| SUBSTRING("InvSTART_DATE",5,2) ||'-'|| RIGHT ("InvSTART_DATE",2),'YYYY-MM-DD')
+		ELSE TO_DATE(LEFT("InvREOPEN_DATE",4) ||'-'|| SUBSTRING("InvREOPEN_DATE",5,2) ||'-'|| RIGHT ("InvREOPEN_DATE",2),'YYYY-MM-DD')
+	  END AS "InvREOPEN_DATE"
+	, "InvSTATUS"
+	, "InvREQUIRED_TS"
+	, "InvMAJOR_ROOT_CAUSE"
+	, To_Integer (RIGHT("InvINV_LEAD_ID", LENGTH ("InvINV_LEAD_ID") -1))  AS "InvINV_LEAD_ID"
+	, "InvStepSTEP_CODE"
+	, "InvStepSTEP_SEQ_NUM"
+	, "InvStepSTEP_CATEGORY"
+	, To_Integer (RIGHT("InvStepEXECUTOR_ID", LENGTH ("InvStepEXECUTOR_ID") -1))  AS "InvStepEXECUTOR_ID"
+	, "InvStepDEADLINE_DATE"
+	, "InvStepCOMPLETION_DATE"
+	, "InvStepSTEP_STATUS"
+	, "InvStepOFFLINE_IND"
+	, "InvStepFORM_NAME"
+	, "InvStepMANDATORY_IND"
+	, "InvCauseROOT_CAUSE"
+	, "CausePARENT"
+	, "InvestigationTEXT"
+	, "InvStepTEXT"
+	, "InvCauseTEXT"
+	, "InvCauseCHECK_IND"
+	, "InvCauseROOT_CAUSE_TYPE"
+	, "InvCauseIS_LEAF_IND"
+	, "InvStepSTEP_Name"
+	, "InvStepEXECUTOR_NAME"
+	, "InvInvestigationLeadName"
+	, "RemediationTasks", "RootCauseActionDESCRIPTION"
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_INVESTIGATION;

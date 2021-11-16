@@ -1,0 +1,82 @@
+CREATE VIEW  "IncidentInvestigationLifeCycle_Fact_VW" AS
+/* Incidents and Near Misses - Events */
+SELECT  
+	Events."EventDate"										AS "EventDate"
+	, Events."EventDate"									AS "Date"
+	, Events."EventTime"									AS "Time"
+	, 'Event Date'											AS "PrimaryDateFieldDesc"
+	, Events."EventID"										AS "EventID"
+	, Events."EventID"										AS "TransactionPrimaryKey"
+	, Events."EventManager" 								AS "EventManager"
+	, 'Event' 												AS "TransactionType"
+	, 'Reported Date'										AS "SecondaryDateFieldDesc"
+	, Events."EventReportDate"								AS "SecondaryDate"
+	, Events."EventReportTime"								AS "SecondaryTime"
+	, Events."EventORG_ID"									AS "OrgUnitID"
+	, Events."ReportingPersonFULL_NAME" 					AS "Person"
+	, 'Reporting Person'									AS "PersonDesc"
+	, Events."EventType"									AS "Type"
+	, Events."EventStatus"									AS "Status"
+	, Events."PrimaryInvolvement"							AS "PrimaryInvolvement"  
+    , 'Event entered within 24 hours'		 				AS "NumeratorDesc"
+	, KPIs."Event Entered In Time Numerator" 				AS "Numerator"
+	, 1														AS "Denominator"
+FROM EHS_DA_DMART.EVENTS_VW AS Events
+INNER JOIN EHS_DA_DMART.EVENTS_KPI_RESULTS_VW AS KPIs ON EVENTS."EventID"  = KPIs."EventID" 
+UNION 
+/* Investigations */
+SELECT 
+	  Events."EventDate"									AS "EventDate"
+	, "Investigation Final 28 Day Deadline"					AS "Date"
+	, NULL 													AS "Time"
+	, 'Investigation Deadline Date'							AS "PrimaryDateFieldDesc"
+	, Investigations."EventID"								AS "EventID"
+	, Investigations."EventID"								AS "TransactionPrimaryKey"
+	, Events."EventManager" 								AS "EventManager"
+	, 'Investigation' 										AS "TransactionType"
+	, 'Investigation Actual End Date'						AS "SecondaryDateFieldDesc"
+	, Investigations."InvEND_DATE"							AS "SecondaryDate"
+	, NULL 													AS "SecondaryTime"
+	, Investigations."EventORG_ID"							AS "OrgUnitID"
+	, Investigations."InvInvestigationLeadName"				AS "Person"
+	, 'Investigation Lead'									AS "PersonDesc"
+	, Investigations."EventType"							AS "Type"
+	, Investigations."InvSTATUS"							AS "Status"
+	, Investigations."PrimaryInvolvement1"  				AS "PrimaryInvolvement"  
+	, 'Investigation closed within 28 days'			 		AS "NumeratorDesc"
+	, KPIs."Investigation Closed within 28 Days Numerator" 	AS "Numerator" 
+	, 1														AS "Denominator"
+FROM EHS_DA_DMART.INVESTIGATIONS_VW AS Investigations
+INNER JOIN EHS_DA_DMART.INVESTIGATIONS_KPI_RESULTS_VW AS KPIs ON Investigations."EventID" = KPIs."EventID"
+LEFT OUTER JOIN EHS_DA_DMART.EVENTS_VW AS Events ON Investigations."EventID" = Events."EventID"
+WHERE Investigations."InvRequiredDesc" = 'Yes'
+UNION 
+/* Actions */
+SELECT 
+	  Actions."EventDate"									AS "EventDate"
+	, Actions."ActionDueDate"								AS "Date"
+	, Actions."ActionDueTime"								AS "Time"
+	, 'Action Due Date'										AS "PrimaryDateFieldDesc"
+	, Actions."EventID"										AS "EventID"
+	, Actions."ActionID"									AS "TransactionPrimaryKey"
+	, Actions."EventManager" 								AS "EventManager"
+	, 'Action' 												AS "TransactionType"
+	, 'Action Implemented Date'								AS "SecondaryDateFieldDesc"
+	, Actions."ActionImpDate"								AS "SecondaryDate"
+	, NULL 													AS "SecondaryTime"
+	, Actions."EventORG_ID"									AS "OrgUnitID"
+	, Actions."ActionIMPLEM_IDName"							AS "Person"
+	, 'Action Implementer'									AS "PersonDesc"
+	, Actions."EventType"									AS "Type"
+  , CASE 
+		WHEN KPIs."Action Implemented?" = 'Yes' THEN 'Action Implemented'
+		ELSE 'Action Not Implemented'
+     END 													AS "Status"
+	, Actions."EventPrimaryInvolvement"  					AS "PrimaryInvolvement"  
+	, 'Actions closed by due date'			 				AS "NumeratorDesc"
+	, KPIs."ACTION Implemented IN Time Numerator"			AS "Numerator" 
+	, 1														AS "Denominator"
+FROM EHS_DA_DMART.ACTIONS_VW AS Actions
+INNER JOIN EHS_DA_DMART.ACTIONS_KPI_RESULTS_VW AS KPIs ON Actions."ActionID" = KPIs."ActionID" 
+WHERE "Include in Reporting?" = 'Yes' /* include Actions where there is a valid due date */
+  AND Actions."ActionProcessStatus" NOT IN ('Void','Rejected')  /* EXCLUDE actions that have been voided */

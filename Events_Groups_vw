@@ -1,0 +1,34 @@
+/* Build Event Groups table from the main Events Table */
+CREATE VIEW Events_Groups_vw AS
+SELECT MANDT
+	, "IncidentRootDB_KEY"
+	, "EventID"
+	, "GroupINC_GROUP"
+	, CASE 
+		WHEN "GroupINC_GROUP" = 'ZEHHSS_IGR_ASSET' 		THEN 'Assets' 
+		WHEN "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'Non-Compliance' 
+		WHEN "GroupINC_GROUP" = 'EHHSS_IGR_RELEASE' 	THEN 'Environment' 
+		WHEN "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC' 	THEN 'People & Safety' 
+		ELSE "GroupINC_GROUP" 
+	  END AS "Group Name" 
+	, "LocationID"
+	, "GroupZZACTUAL_CONS"
+	, CASE 
+		WHEN "GroupZZACTUAL_CONS" = '01' 				THEN '1 - Negligible' 
+		WHEN "GroupZZACTUAL_CONS" = '02' 				THEN '2 - Minor' 
+		WHEN "GroupZZACTUAL_CONS" = '03' 				THEN '3 - Moderate' 
+		WHEN "GroupZZACTUAL_CONS" = '04' 				THEN '4 - Major' 
+		WHEN "GroupZZACTUAL_CONS" = '05' 				THEN '5 - Severe' 
+		ELSE 'unassigned' 
+	  END AS "Actual Consequence Rating" 
+	, "GroupZZPOTENTIAL_CONS"
+	, CASE 
+		WHEN "GroupZZPOTENTIAL_CONS" = '01' 			THEN '1 - Negligible' 
+		WHEN "GroupZZPOTENTIAL_CONS" = '02' 			THEN '2 - Minor' 
+		WHEN "GroupZZPOTENTIAL_CONS" = '03' 			THEN '3 - Moderate' 
+		WHEN "GroupZZPOTENTIAL_CONS" = '04' 			THEN '4 - Major' 
+		WHEN "GroupZZPOTENTIAL_CONS" = '05' 			THEN '5 - Severe' 
+		ELSE 'unassigned' 
+	  END AS "Potential Consequence Rating" 
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS
+WHERE "EventType"  IN ('I','N');
