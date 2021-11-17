@@ -1,13 +1,13 @@
 /* Calculates which investigations were closed within 28 days and ignores those that were Voided */
-CREATE VIEW Investigations_KPI_Results_vw as 
 SELECT 
 	"IncidentRootDB_KEY"
 	, "EventID"
+	,  To_Integer ( "EventID")			AS "EventID_Numeric"
 	, "EventDate"
 	, "InvSTART_DATE"
 	, "InvEND_DATE"
 	, "InvREOPEN_DATE"
-	, Add_Days("EventDate",28) AS "Investigation Final 28 Day Deadline"
+        ,  Add_Days("EventDate",28) AS "Investigation Final 28 Day Deadline"
 	, "InvSTATUS"	  
 	, DAYS_BETWEEN ("EventDate","Investigation Reportable End Date") AS "Investigation Days Open"
 	, CASE 
@@ -15,19 +15,17 @@ SELECT
 		WHEN NOW() >= Add_Days("EventDate",28) THEN 'Yes'  /* Inspection may not be closed but has gone past the 28 day mark */
 		WHEN "InvSTATUS" = '03' THEN 'Yes'  /* Investigation Closed */
 		ELSE 'No'
-	  END AS "Include In KPIs"	, CASE 
-		WHEN "InvSTATUS" = '00' THEN 0  /* Inspection is VOID */
-		WHEN "InvSTATUS" <> '03'AND NOW() >= Add_Days("EventDate",28) THEN 0  /* Inspection may not be closed but has gone past the 28 day mark */
-		WHEN "InvSTATUS" = '03' AND "Investigation Reportable End Date" >= Add_Days("EventDate",28) THEN 0  /* Investigation Closed but overdue */
+	  END AS "Include In KPIs"	
+	, CASE 
+		WHEN "InvSTATUS" IN ('00', '03') AND "InvEND_DATE" > "Investigation Reportable End Date"  THEN 0  /* Investigation Closed (03) or Void (00) but overdue */
+		WHEN "InvSTATUS" NOT IN ('00', '03') AND NOW() >= "Investigation Reportable End Date" THEN 0  /* Inspection may not be closed but has gone past the 28 day mark */
 		ELSE 1
 	  END AS "Investigation Closed within 28 Days Numerator"
 	, CASE 
-		WHEN "InvSTATUS" = '00' THEN 'No'  /* Inspection is VOID */
-		WHEN "InvSTATUS" <> '03'AND NOW() >= Add_Days("EventDate",28) THEN 'No'  /* Inspection may not be closed but has gone past the 28 day mark */
-		WHEN "InvSTATUS" = '03' AND "Investigation Reportable End Date" >= Add_Days("EventDate",28) THEN 'No'  /* Investigation Closed but overdue */
+		WHEN "InvSTATUS" IN ('00', '03') AND "InvEND_DATE" > "Investigation Reportable End Date"  THEN 'No'  /* Investigation Closed (03) or Void (00) but overdue */
+		WHEN "InvSTATUS" NOT IN ('00', '03') AND NOW() >= "Investigation Reportable End Date" THEN 'No'  /* Inspection may not be closed but has gone past the 28 day mark */
 		ELSE 'Yes'
 	  END AS "Did Investigation Close within 28 Days?"
 	, "InvRequiredDesc"
 	, 1 AS "Investigation KPI Count"
 FROM EHS_DA_DMART.INVESTIGATIONS_VW
-
