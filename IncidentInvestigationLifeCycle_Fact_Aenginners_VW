@@ -69,19 +69,20 @@ SELECT
 	, NULL 													AS "SecondaryTime"
 	, Actions."EventORG_ID"									AS "OrgUnitID"
 	, Actions."ActionIMPLEM_IDName"							AS "Person"
-	, 'Actions Lead'										AS "PersonDesc"
+	, 'Action Implementer'									AS "PersonDesc"
 	, Actions."EventType"									AS "Type"
-	, Actions."ActionSTATUS"								AS "Status"
+	, CASE 
+		WHEN Actions."ActionProcessStatus" IN ('Error','Rejected','Void') THEN '00'
+		ELSE Actions."ActionSTATUS"	END						AS "Status"
 	, Actions."EventPrimaryInvolvement"  					AS "PrimaryInvolvement"  
 	, 'Actions closed by due date'			 				AS "NumeratorDesc"
 	, KPIs."ACTION Implemented IN Time Numerator"			AS "Numerator" 
 	, 1														AS "Denominator"
 	, CASE 
 		WHEN Events."EventStatus" = '00' THEN 0
+		WHEN Actions."ActionProcessStatus" IN ('Error','Rejected','Void') THEN 0
 		ELSE 1
 	  END 													AS "IncludeInAEReporting"
 FROM EHS_DA_DMART.ACTIONS_VW AS Actions
 INNER JOIN EHS_DA_DMART.ACTIONS_KPI_RESULTS_VW AS KPIs ON Actions."ActionID" = KPIs."ActionID" 
-LEFT OUTER JOIN EHS_DA_DMART.EVENTS_VW AS Events ON Actions."EventID"  = Events."EventID" 
-
-;
+LEFT OUTER JOIN EHS_DA_DMART.EVENTS_VW AS Events ON Actions."EventID"  = Events."EventID" ;
