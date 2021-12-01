@@ -39,6 +39,36 @@
 	) INJURYDESCRIPTION ON ER_EVENTANALYSIS_INJURED."EventID" = INJURYDESCRIPTION."EventID"
 WHERE "EventManager" IS NOT NULL;
 
+/* Injury Details */
+CREATE VIEW InjuredPersons_Details_VW AS
+SELECT DISTINCT  
+ 	"EventID"
+	,  To_Integer ( "EventID")												AS "EventID_Numeric"
+ 	,  CONCAT("EventID","InjuredPersonID")									AS "InjuredPersonKey" 
+	 , To_Integer (RIGHT("InjuredPersonID", LENGTH ("InjuredPersonID") -1)) AS "InjuredPersonID"
+	 , "InjuredPersonID"													AS "InjuredPersonID_Varchar"
+     , "InjuriesINJ_ILL"
+	 , "InjuriesTYPE"
+	 , "InjuriesBODY_PART"
+	 , "InjuriesBODY_SIDE"
+	 , "InjuredPersonDISABLE_CH_P_IND"
+	 , "InjuriesInjuryDescription"
+	 , "InjuriesBodyPartDescription"
+	 , "InjAbsenceTYPE"
+	 , "InjAbsenceSUBTYPE"
+	 , "InjAbsenceSTART_DATE"
+	 , "InjAbsenceEND_DATE"
+	 , "InjAbsenceWORK_DAY_MEAS"
+	 , "InjAbsenceCAL_DAY_MEAS"
+	 , "InjAbsencePERS_NUMBER"
+	 , "InjAbsenceA_LOST_SH_MEAS"
+	 , "InjAbsencePSG"
+	 , "BodyPartText"
+	 , "InjuriesINJ_ORG_PROP_TS"
+	 , "InjuriesINJ_ON_DUTY_TS",
+	 "InjuriesMAIN_TS"
+ FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED 
+WHERE "EventManager" IS NOT NULL; 
 
 /* Agency of Injury */
 CREATE VIEW InjuredPersons_AgencyMechanism_VW AS
