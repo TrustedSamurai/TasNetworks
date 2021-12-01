@@ -33,15 +33,6 @@ SELECT DISTINCT
  	,  CONCAT("EventID","InjuredPersonID")									AS "InjuredPersonKey" 
 	 , To_Integer (RIGHT("InjuredPersonID", LENGTH ("InjuredPersonID") -1)) AS "InjuredPersonID"
 	 , "InjuredPersonID"													AS "InjuredPersonID_Varchar"
-	 , "InjuriesOC_INC_TYPE"
-	 , CASE 
-		WHEN "InjuriesOC_INC_TYPE" = '0001' THEN 'Compensable Recordable' 
-		WHEN "InjuriesOC_INC_TYPE" = '0002' THEN 'Non work related event' 
-		WHEN "InjuriesOC_INC_TYPE" = '0003' THEN 'Incident on way to/from work' 
-		WHEN "InjuriesOC_INC_TYPE" = '0004' THEN 'Customer injury' 
-		WHEN "InjuriesOC_INC_TYPE" = '0005' THEN 'Compensable Non-Recordable' 
-		ELSE 'Unknown' 
-       END 																	AS "InjuryIncidentType"
      , "InjuriesINJ_ILL"
 	 , "InjuriesTYPE"
 	 , "InjuriesBODY_PART"
