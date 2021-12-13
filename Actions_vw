@@ -36,6 +36,22 @@ SELECT
 	, To_Integer (RIGHT("ReportingPersonID", LENGTH ("ReportingPersonID") -1))  AS "ReportingPersonID"
 	, "ActionID"
 	, "ActionSTATUS"
+	, CASE 
+		WHEN "ActionSTATUS"  = '00' 	THEN 'Void'
+		WHEN "ActionSTATUS"  = '01' 	THEN 'New'
+		WHEN "ActionSTATUS"  = '02' 	THEN 'In Progress'
+		WHEN "ActionSTATUS"  = '03' 	THEN 'Closed'
+		WHEN "ActionSTATUS"  = '04' 	THEN 'Reopened'
+										ELSE 'Unknown'
+	  END AS "ActionSTATUSDesc"	
+	, CASE 
+		WHEN "ActionSTATUS"  = '00' 	THEN 'Void'
+		WHEN "ActionSTATUS"  = '01' 	THEN 'Open'
+		WHEN "ActionSTATUS"  = '02' 	THEN 'Open'
+		WHEN "ActionSTATUS"  = '03' 	THEN 'Closed'
+		WHEN "ActionSTATUS"  = '04' 	THEN 'Open'
+										ELSE 'Unknown'
+	  END AS "ActionSTATUSOpenClosedDesc"
 	, "ActionTITLE"
 	, "ActionSUBJECT"
 	, "ActionCATEGORY"
