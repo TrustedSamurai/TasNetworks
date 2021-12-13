@@ -1,6 +1,7 @@
 CREATE VIEW Actions_vw as
 SELECT  
 	"IncidentRootDB_KEY"
+	,  To_Integer ( "EventID")			AS "EventID_Numeric"
 	, "EventID"
 	, "EventCATEGORY"
 	, CASE 
