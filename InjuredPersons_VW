@@ -25,12 +25,6 @@
 	 , "InjuredPersonInjuryClsDesc"
 	 , INJURYDESCRIPTION.InjuryList									AS "InjuryList"
 	 , "InjuredPersonROLE"
-	 , "RehabWCCASNO"
-	 , "RehabWCENDDA"
-	 , "RehabWCBEGDA"
-	 , "RehabCLMNO"
-	 , "RehabENDDA"
-	 , "RehabBEGDA"
  FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED 
  LEFT OUTER JOIN (
  	SELECT "EventID",STRING_AGG("InjuriesInjuryDescription", ', ') AS InjuryList
