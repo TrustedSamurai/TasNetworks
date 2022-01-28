@@ -1,8 +1,11 @@
-/* Build an Events table removing all columns that cause duplicate rows */
 CREATE VIEW Events_vw AS
 SELECT "IncidentRootDB_KEY"
-	, "EventID"
-	,  To_Integer ( "EventID")			AS "EventID_Numeric"
+	, Events."EventID"
+	,  To_Integer ( Events."EventID")			AS "EventID_Numeric"
+	, CASE  /*check if there is a matching record in the Injuries table.  This will indicate an injured person */
+		WHEN Injuries."EventID" = Events."EventID" THEN 'Yes'
+		ELSE 'No' 
+	  END AS "WasSomeoneInjured?"
 	, "CATEGORY"
 	, CASE 
 		WHEN "SignificantEvent" = 'X' THEN 'Yes' 
@@ -67,6 +70,7 @@ SELECT "IncidentRootDB_KEY"
 	, "CITY"
 	, "COUNTRY"
 	, "REGION"
-FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS
-WHERE "EventType"  IN ('I','N')
-ORDER BY "EventID" ;
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS Events
+LEFT OUTER JOIN (SELECT DISTINCT "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED WHERE ER_EVENTANALYSIS_INJURED."EventManager" IS NOT NULL ) AS Injuries ON Events."EventID" = Injuries."EventID" 
+WHERE Events."EventType"  IN ('I','N')
+ORDER BY Events."EventID" ;
