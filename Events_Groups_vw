@@ -2,7 +2,7 @@
 CREATE VIEW Events_Groups_vw AS
 SELECT MANDT
 	, "IncidentRootDB_KEY"
-	, "EventID"
+	, EVENTGROUPS."EventID"
 	, "GroupINC_GROUP"
 	, CASE 
 		WHEN "GroupINC_GROUP" = 'ZEHHSS_IGR_ASSET' 		THEN 'Assets' 
@@ -30,5 +30,14 @@ SELECT MANDT
 		WHEN "GroupZZPOTENTIAL_CONS" = '05' 			THEN '5 - Severe' 
 		ELSE 'unassigned' 
 	  END AS "Potential Consequence Rating" 
-FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS
+	, CASE 
+		WHEN NonCompliance."EventID" IS NOT null  	/* Compliance incident, violation type NERR / Life Support Customer / Actual Consequence Rating Moderate or Above */
+		 AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
+		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN 'Yes' 
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
+		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN 'Yes' 
+		ELSE 'No' 
+	  END AS "Significant Incident" 
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EventGroups
+LEFT JOIN (SELECT DISTINCT "EventID" AS "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE WHERE "ViolationType" = 'ZEHHSS_VTC_LSCINTERRU') AS NonCompliance ON EVENTGROUPS."EventID" = NonCompliance."EventID"
 WHERE "EventType"  IN ('I','N');
