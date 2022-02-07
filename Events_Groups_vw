@@ -38,6 +38,14 @@ SELECT MANDT
 		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN 'Yes' 
 		ELSE 'No' 
 	  END AS "Significant Incident" 
+	, CASE 
+		WHEN NonCompliance."EventID" IS NOT null 
+		AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'Interruption LSC' 	/* Compliance incident - violation type NERR affecting a Life Support Customer */ 
+		WHEN WorkSafeTas."EventID" IS NOT null 
+		AND "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC' THEN 'People/Safety' 	/* People Safety incident - involving WorkSafe Tasmania */ 
+		ELSE ''
+	  END AS "Reportable Safety Incident"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EventGroups
 LEFT JOIN (SELECT DISTINCT "EventID" AS "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE WHERE "ViolationType" = 'ZEHHSS_VTC_LSCINTERRU') AS NonCompliance ON EVENTGROUPS."EventID" = NonCompliance."EventID"
+LEFT JOIN (SELECT DISTINCT "EventID" AS "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE WHERE "RegulatorDESCRIPTION" = 'WorkSafe Tasmania') AS WorkSafeTas ON EVENTGROUPS."EventID" = WorkSafeTas."EventID"
 WHERE "EventType"  IN ('I','N');
