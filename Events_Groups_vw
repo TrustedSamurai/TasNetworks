@@ -46,6 +46,37 @@ SELECT MANDT
 		ELSE ''
 	  END AS "Reportable Safety Incident"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EventGroups
-LEFT JOIN (SELECT DISTINCT "EventID" AS "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE WHERE "ViolationType" = 'ZEHHSS_VTC_LSCINTERRU') AS NonCompliance ON EVENTGROUPS."EventID" = NonCompliance."EventID"
+LEFT JOIN 
+			(
+				SELECT DISTINCT "EventID" AS "EventID" 
+				FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE 
+				WHERE ("ViolationType" = 'ZEHHSS_VTC_LSCINTERRU'
+				OR "ReqREQ_ID" IN (
+									 '50001840' /* Distributor de-energisation of premises-small customers, from here down */
+									,'50001843'
+									,'50005268' /* Distributor obligations, life support equipment, from here down */
+									,'50005258'
+									,'50005259'
+									,'50005260'
+									,'50005261'
+									,'50005262'
+									,'50005263'
+									,'50005264'
+									,'50005265'
+									,'50005266'
+									,'50005267'
+									,'50005268'
+									,'50005269'
+									,'50005270'
+									,'50005271'
+									,'50005272'
+									,'50005274'
+									,'50005276'
+									,'50005277'
+									,'50005278'
+									,'50005280'
+								  ) 
+					   )
+			) AS NonCompliance ON EVENTGROUPS."EventID" = NonCompliance."EventID"
 LEFT JOIN (SELECT DISTINCT "EventID" AS "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE WHERE "RegulatorDESCRIPTION" = 'WorkSafe Tasmania') AS WorkSafeTas ON EVENTGROUPS."EventID" = WorkSafeTas."EventID"
 WHERE "EventType"  IN ('I','N');
