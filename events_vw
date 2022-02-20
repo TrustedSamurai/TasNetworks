@@ -1,4 +1,4 @@
-CREATE VIEW Events_vw AS
+CREATE VIEW Events_vw AS 
 SELECT "IncidentRootDB_KEY"
 	, Events."EventID"
 	,  To_Integer ( Events."EventID")			AS "EventID_Numeric"
@@ -73,4 +73,6 @@ SELECT "IncidentRootDB_KEY"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS Events
 LEFT OUTER JOIN (SELECT DISTINCT "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED WHERE ER_EVENTANALYSIS_INJURED."EventManager" IS NOT NULL ) AS Injuries ON Events."EventID" = Injuries."EventID" 
 WHERE Events."EventType"  IN ('I','N')
-ORDER BY Events."EventID" ;
+AND "EventStatus" <> '00'
+ORDER BY Events."EventID" 
+;
