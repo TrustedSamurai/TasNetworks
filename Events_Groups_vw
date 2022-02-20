@@ -79,4 +79,5 @@ LEFT JOIN
 					   )
 			) AS NonCompliance ON EVENTGROUPS."EventID" = NonCompliance."EventID"
 LEFT JOIN (SELECT DISTINCT "EventID" AS "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE WHERE "RegulatorDESCRIPTION" = 'WorkSafe Tasmania') AS WorkSafeTas ON EVENTGROUPS."EventID" = WorkSafeTas."EventID"
-WHERE "EventType"  IN ('I','N');
+WHERE "EventType"  IN ('I','N')
+AND "EventStatus" <> '00';
