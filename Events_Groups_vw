@@ -40,11 +40,18 @@ SELECT MANDT
 	  END AS "Significant Incident" 
 	, CASE 
 		WHEN NonCompliance."EventID" IS NOT null 
+		AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'Yes' 	/* Compliance incident - violation type NERR affecting a Life Support Customer */ 
+		WHEN WorkSafeTas."EventID" IS NOT null 
+		AND "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC' THEN 'Yes' 	/* People Safety incident - involving WorkSafe Tasmania */ 
+		ELSE ''
+	  END AS "Reportable Safety Incident"
+	, CASE 
+		WHEN NonCompliance."EventID" IS NOT null 
 		AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'Interruption LSC' 	/* Compliance incident - violation type NERR affecting a Life Support Customer */ 
 		WHEN WorkSafeTas."EventID" IS NOT null 
 		AND "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC' THEN 'People/Safety' 	/* People Safety incident - involving WorkSafe Tasmania */ 
 		ELSE ''
-	  END AS "Reportable Safety Incident"
+	  END AS "Reportable Safety Incident Type"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EventGroups
 LEFT JOIN 
 			(
@@ -78,6 +85,14 @@ LEFT JOIN
 								  ) 
 					   )
 			) AS NonCompliance ON EVENTGROUPS."EventID" = NonCompliance."EventID"
-LEFT JOIN (SELECT DISTINCT "EventID" AS "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE WHERE "RegulatorDESCRIPTION" = 'WorkSafe Tasmania') AS WorkSafeTas ON EVENTGROUPS."EventID" = WorkSafeTas."EventID"
+LEFT JOIN 
+			(
+				SELECT DISTINCT EVENTDETAILS."EventID" AS "EventID" 
+				FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTDETAILS
+				LEFT OUTER JOIN EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE AS COMPLIANCE  ON EVENTDETAILS."EventID" = COMPLIANCE."EventID" 
+				WHERE COMPLIANCE."RegulatorDESCRIPTION" = 'WorkSafe Tasmania'
+				   OR EVENTDETAILS."RegulatorREGULATION" = 'ZWST'  /* Look for Worksafe Tas regulator details in Event table if missing from compliance table */
+
+			) AS WorkSafeTas ON EVENTGROUPS."EventID" = WorkSafeTas."EventID"
 WHERE "EventType"  IN ('I','N')
 AND "EventStatus" <> '00';
