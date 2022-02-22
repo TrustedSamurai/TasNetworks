@@ -17,12 +17,29 @@ SELECT
 	, 'Reporting Person'									AS "PersonDesc"
 	, Events."EventType"									AS "Type"
 	, Events."EventStatus"									AS "Status"
-	, Events."PrimaryInvolvement"							AS "PrimaryInvolvement"  
+	, Events."PrimaryInvolvement"							AS "PrimaryInvolvement" 
+	, EVENTGROUPS."EVENT_GROUP_PS"
+	, EVENTGROUPS."EVENT_GROUP_ENVIRO"
+	, EVENTGROUPS."EVENT_GROUP_ASSETS"
+	, EVENTGROUPS."EVENT_GROUP_COMPLIANCE" 
     , 'Event entered within 24 hours'		 				AS "NumeratorDesc"
 	, KPIs."Event Entered In Time Numerator" 				AS "Numerator"
 	, 1														AS "Denominator"
 FROM EHS_DA_DMART.EVENTS_VW AS Events
 INNER JOIN EHS_DA_DMART.EVENTS_KPI_RESULTS_VW AS KPIs ON EVENTS."EventID"  = KPIs."EventID" 
+INNER JOIN (
+			SELECT  
+			  	  Events."EventID"
+			  	, GROUP_PS."Group Name" AS EVENT_GROUP_PS
+			  	, GROUP_ENV."Group Name" AS EVENT_GROUP_ENVIRO
+			  	, GROUP_AST."Group Name" AS EVENT_GROUP_ASSETS 
+			  	, GROUP_COMP."Group Name" AS EVENT_GROUP_COMPLIANCE
+			 FROM EHS_DA_DMART.EVENTS_VW AS EVENTS
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'People & Safety') AS Group_PS ON Events."EventID" = GROUP_PS."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Environment') AS GROUP_ENV ON Events."EventID" = GROUP_ENV."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Assets') AS GROUP_AST ON Events."EventID" = GROUP_AST."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Non-Compliance') AS GROUP_COMP ON Events."EventID" = GROUP_COMP."EventID"
+			) AS EVENTGROUPS ON Events."EventID" = EVENTGROUPS."EventID"	
 UNION 
 /* Investigations */
 SELECT 
@@ -43,11 +60,28 @@ SELECT
 	, Investigations."EventType"							AS "Type"
 	, Investigations."InvSTATUS"							AS "Status"
 	, Investigations."PrimaryInvolvement1"  				AS "PrimaryInvolvement"  
+	, EVENTGROUPS."EVENT_GROUP_PS"
+	, EVENTGROUPS."EVENT_GROUP_ENVIRO"
+	, EVENTGROUPS."EVENT_GROUP_ASSETS"
+	, EVENTGROUPS."EVENT_GROUP_COMPLIANCE"
 	, 'Investigation closed within 28 days'			 		AS "NumeratorDesc"
 	, KPIs."Investigation Closed within 28 Days Numerator" 	AS "Numerator" 
 	, 1														AS "Denominator"
 FROM EHS_DA_DMART.INVESTIGATIONS_VW AS Investigations
 INNER JOIN EHS_DA_DMART.INVESTIGATIONS_KPI_RESULTS_VW AS KPIs ON Investigations."EventID" = KPIs."EventID"
+INNER JOIN (
+			SELECT  
+			  	  Events."EventID"
+			  	, GROUP_PS."Group Name" AS EVENT_GROUP_PS
+			  	, GROUP_ENV."Group Name" AS EVENT_GROUP_ENVIRO
+			  	, GROUP_AST."Group Name" AS EVENT_GROUP_ASSETS 
+			  	, GROUP_COMP."Group Name" AS EVENT_GROUP_COMPLIANCE
+			 FROM EHS_DA_DMART.EVENTS_VW AS EVENTS
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'People & Safety') AS Group_PS ON Events."EventID" = GROUP_PS."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Environment') AS GROUP_ENV ON Events."EventID" = GROUP_ENV."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Assets') AS GROUP_AST ON Events."EventID" = GROUP_AST."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Non-Compliance') AS GROUP_COMP ON Events."EventID" = GROUP_COMP."EventID"
+			) AS EVENTGROUPS ON Investigations."EventID" = EVENTGROUPS."EventID"	
 LEFT OUTER JOIN EHS_DA_DMART.EVENTS_VW AS Events ON Investigations."EventID" = Events."EventID"
 WHERE Investigations."InvRequiredDesc" = 'Yes'
 UNION 
@@ -73,10 +107,27 @@ SELECT
 		ELSE 'Action Not Implemented'
      END 													AS "Status"
 	, Actions."EventPrimaryInvolvement"  					AS "PrimaryInvolvement"  
+	, EVENTGROUPS."EVENT_GROUP_PS"
+	, EVENTGROUPS."EVENT_GROUP_ENVIRO"
+	, EVENTGROUPS."EVENT_GROUP_ASSETS"
+	, EVENTGROUPS."EVENT_GROUP_COMPLIANCE"
 	, 'Actions closed by due date'			 				AS "NumeratorDesc"
 	, KPIs."ACTION Implemented IN Time Numerator"			AS "Numerator" 
 	, 1														AS "Denominator"
 FROM EHS_DA_DMART.ACTIONS_VW AS Actions
 INNER JOIN EHS_DA_DMART.ACTIONS_KPI_RESULTS_VW AS KPIs ON Actions."ActionID" = KPIs."ActionID" 
+INNER JOIN (
+			SELECT  
+			  	  Events."EventID"
+			  	, GROUP_PS."Group Name" AS EVENT_GROUP_PS
+			  	, GROUP_ENV."Group Name" AS EVENT_GROUP_ENVIRO
+			  	, GROUP_AST."Group Name" AS EVENT_GROUP_ASSETS 
+			  	, GROUP_COMP."Group Name" AS EVENT_GROUP_COMPLIANCE
+			 FROM EHS_DA_DMART.EVENTS_VW AS EVENTS
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'People & Safety') AS Group_PS ON Events."EventID" = GROUP_PS."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Environment') AS GROUP_ENV ON Events."EventID" = GROUP_ENV."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Assets') AS GROUP_AST ON Events."EventID" = GROUP_AST."EventID"
+			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Non-Compliance') AS GROUP_COMP ON Events."EventID" = GROUP_COMP."EventID"
+			) AS EVENTGROUPS ON Actions."EventID" = EVENTGROUPS."EventID"	
 WHERE "Include in Reporting?" = 'Yes' /* include Actions where there is a valid due date */
   AND Actions."ActionProcessStatus" NOT IN ('Void','Rejected')  /* EXCLUDE actions that have been voided */
