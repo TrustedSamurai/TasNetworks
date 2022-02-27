@@ -15,7 +15,7 @@ SELECT
 		ELSE 'Yes'
 	  END AS "Action Implemented?"
 	, CASE 
-		WHEN CASE WHEN length("ActionImpDate") = 0 THEN NOW() ELSE "ActionImpDate" end <= "ActionDueDate" THEN 1 /* Action implemented by due date */
+		WHEN CASE WHEN length("ActionImpDate") = 0 THEN ADD_DAYS (NOW(), -1) ELSE "ActionImpDate" end <= "ActionDueDate" THEN 1 /* Action implemented by due date.  Subtract 1 day from NOW() to allow till midnight of ActionDueDate before expiry */
 		ELSE 0
 	  END AS "ACTION Implemented IN Time Numerator" 
 	,1 AS "ACTION KPI Count"
