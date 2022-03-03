@@ -4,7 +4,7 @@ DECLARE lv_todate DATE = '20300731';
 DECLARE LV_EMPLOYEE TABLE(EMPLOYEE NVARCHAR(8), HRPOSITION NVARCHAR(8), ORGUNIT NVARCHAR(8), REPORTDATE DATE);
 WHILE :lv_fromdate< :lv_todate DO  
       INSERT INTO :LV_EMPLOYEE (EMPLOYEE, HRPOSITION, ORGUNIT, REPORTDATE )
-      SELECT EMPLOYEE, HRPOSITION, ORGUNIT, :lv_fromdate FROM "EmployeeLimitedvw" e
+      SELECT EMPLOYEE, HRPOSITION, ORGUNIT, :lv_fromdate FROM EHS_DA_DMART."EmployeeLimitedvw" e
       WHERE e."DATETO" >= :lv_fromdate and e."DATEFROM" <= :lv_fromdate 
       AND e.EMPLGROUP <>'F' and e.EMPLPCT <> 0;
       lv_fromdate = ADD_Months(:lv_fromdate,1);    
