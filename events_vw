@@ -46,7 +46,10 @@ SELECT "IncidentRootDB_KEY"
 	, "EventReportDate"
 	, "EventReportTime"
 	, CAST(CONCAT( CONCAT ("EventReportDate", ' '), "EventReportTime") AS DateTime) As "EventReportDateTime"
-	, To_Integer (RIGHT("ReportingPersonID", LENGTH ("ReportingPersonID") -1))  AS "ReportingPersonID"
+	, CASE 
+		WHEN RIGHT("ReportingPersonID",3)= 'PVT' THEN 0 /* invalid person id - return a zero so we dont break the SQL */
+		ELSE To_Integer (RIGHT("ReportingPersonID", LENGTH ("ReportingPersonID") -1))  
+	  END AS "ReportingPersonID"
 	, CASE 
 		WHEN "PrimaryInvolvement"  = 'X' 	THEN 'TasNetworks'
 		WHEN "PrimaryInvolvement"  = '-' 	THEN '3rd Party (not contractor)'
@@ -104,4 +107,5 @@ INNER JOIN (
 WHERE Events."EventType"  IN ('I','N')
 AND "EventStatus" <> '00'
 ORDER BY Events."EventID" 
+;
 ;
