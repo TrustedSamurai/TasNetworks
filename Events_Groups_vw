@@ -41,15 +41,21 @@ SELECT MANDT
 	, CASE 
 		WHEN NonCompliance."EventID" IS NOT null 
 		AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'Yes' 	/* Compliance incident - violation type NERR affecting a Life Support Customer */ 
-		WHEN WorkSafeTas."EventID" IS NOT null 
-		AND "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC' THEN 'Yes' 	/* People Safety incident - involving WorkSafe Tasmania */ 
+		WHEN WorkSafeTas."EventID" IS NOT null  THEN 'Yes' 	/* Reported to WorkSafe Tasmania */ 
 		ELSE ''
 	  END AS "Reportable Safety Incident"
 	, CASE 
 		WHEN NonCompliance."EventID" IS NOT null 
 		AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'Interruption LSC' 	/* Compliance incident - violation type NERR affecting a Life Support Customer */ 
 		WHEN WorkSafeTas."EventID" IS NOT null 
-		AND "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC' THEN 'People/Safety' 	/* People Safety incident - involving WorkSafe Tasmania */ 
+		AND "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC' THEN 
+			CASE 
+				WHEN "GroupINC_GROUP" = 'ZEHHSS_IGR_ASSET' 		THEN 'Assets' 
+				WHEN "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'Non-Compliance' 
+				WHEN "GroupINC_GROUP" = 'EHHSS_IGR_RELEASE' 	THEN 'Environment' 
+				WHEN "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC' 	THEN 'People & Safety' 
+				ELSE "GroupINC_GROUP" 
+			  END 
 		ELSE ''
 	  END AS "Reportable Safety Incident Type"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EventGroups
@@ -95,4 +101,4 @@ LEFT JOIN
 
 			) AS WorkSafeTas ON EVENTGROUPS."EventID" = WorkSafeTas."EventID"
 WHERE "EventType"  IN ('I','N')
-AND "EventStatus" <> '00';
+AND "EventStatus" <> '00'
