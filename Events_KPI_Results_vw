@@ -1,6 +1,9 @@
 /* Script to calculate Event related KPIs */
-CREATE VIEW Events_KPI_Results_vw AS
+CREATE VIEW Events_KPI_Results_vw AS 
+/**************************************************/
+/*  This section determines whether the Event was entered within the agreed time for Incident Investigation Lifecycle KPI */
 SELECT "IncidentRootDB_KEY"
+	, 'Event Entered Within 24 Hours' AS "Event KPI Name"
 	, "EventID"
 	, "EventDateTime"
 	, DAYNAME("EventDate") AS "EventDay"
