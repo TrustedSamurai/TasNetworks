@@ -1,4 +1,4 @@
-CREATE VIEW Events_vw AS 
+ CREATE VIEW Events_vw AS  
 SELECT "IncidentRootDB_KEY"
 	, Events."EventID"
 	,  To_Integer ( Events."EventID")			AS "EventID_Numeric"
@@ -90,34 +90,35 @@ SELECT "IncidentRootDB_KEY"
 		WHEN EVENTGROUPS.EVENT_GROUP_COMPLIANCE IS NOT NULL  THEN 'Yes'
 		ELSE 'No'
 	  END AS "EventGroupCompliance"
-	, CASE /* Identify the Regulators for each Event */
+/* Identify the Regulators for each Event */
+	, CASE 
 		WHEN EVENTREGULATORS.EVENT_REGULATOR_AER IS NOT NULL  THEN 'Yes'
 		ELSE 'No'
-	  END AS "Regulator_AER"
-	, CASE /* Identify the Regulators for each Event */
+	  END AS "Regulator_AER" 
+	, CASE 
 		WHEN EVENTREGULATORS.EVENT_REGULATOR_WST IS NOT NULL  THEN 'Yes'
 		ELSE 'No'
 	  END AS "Regulator_WST"
-	, CASE /* Identify the Regulators for each Event */
+	, CASE 
 		WHEN EVENTREGULATORS.EVENT_REGULATOR_DPIPWE IS NOT NULL  THEN 'Yes'
 		ELSE 'No'
 	  END AS "Regulator_DPIPWE"
-	, CASE /* Identify the Regulators for each Event */
+	, CASE 
 		WHEN EVENTREGULATORS.EVENT_REGULATOR_AEMO IS NOT NULL  THEN 'Yes'
 		ELSE 'No'
 	  END AS "Regulator_AEMO"
-	, CASE /* Identify the Regulators for each Event */
+	, CASE 
 		WHEN EVENTREGULATORS.EVENT_REGULATOR_CBOS IS NOT NULL  THEN 'Yes'
 		ELSE 'No'
 	  END AS "Regulator_CBOS"
-	, CASE /* Identify the Regulators for each Event */
+	, CASE 
 		WHEN EVENTREGULATORS.EVENT_REGULATOR_Other IS NOT NULL  THEN 'Yes'
 		ELSE 'No'
 	  END AS "Regulator_Other"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS Events
 LEFT OUTER JOIN (SELECT DISTINCT "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED WHERE ER_EVENTANALYSIS_INJURED."EventManager" IS NOT NULL ) AS Injuries ON Events."EventID" = Injuries."EventID"
 LEFT OUTER JOIN (
-			SELECT  
+			SELECT DISTINCT
 			  	  Events."EventID"
 			  	, GROUP_PS."Group Name" AS EVENT_GROUP_PS
 			  	, GROUP_ENV."Group Name" AS EVENT_GROUP_ENVIRO
@@ -130,7 +131,7 @@ LEFT OUTER JOIN (
 			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Non-Compliance') AS GROUP_COMP ON Events."EventID" = GROUP_COMP."EventID"
 			) AS EVENTGROUPS ON Events."EventID" = EVENTGROUPS."EventID"	
 LEFT OUTER JOIN (
-			SELECT  
+			SELECT DISTINCT
 			  	  REGULATORS."EventID"
 			  	, REGULATOR_AER."Regulator_Abbrev" AS EVENT_REGULATOR_AER
 			  	, REGULATOR_WST."Regulator_Abbrev" AS EVENT_REGULATOR_WST
@@ -145,6 +146,6 @@ LEFT OUTER JOIN (
 			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'Australian Energy Market Operator') 					AS REGULATOR_AEMO 	ON REGULATORS."EventID" = REGULATOR_AEMO."EventID"  
 			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'Consumer Building and Occup. Services') 				AS REGULATOR_CBOS 	ON REGULATORS."EventID" = REGULATOR_CBOS."EventID"  
 			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'Other') 												AS REGULATOR_Other 	ON REGULATORS."EventID" = REGULATOR_Other."EventID"  
-			) AS EVENTREGULATORS ON Events."EventID" = EVENTREGULATORS."EventID"		 
+			) AS EVENTREGULATORS ON Events."EventID" = EVENTREGULATORS."EventID" 		 
 WHERE Events."EventType"  IN ('I','N')
 AND "EventStatus" <> '00';
