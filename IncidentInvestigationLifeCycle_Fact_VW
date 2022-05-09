@@ -27,7 +27,7 @@ SELECT
 	, KPIs."Event Entered In Time Numerator" 						AS "Numerator"
 	, 1											AS "Denominator"
 FROM EHS_DA_DMART.EVENTS_VW AS Events
-INNER JOIN EHS_DA_DMART.EVENTS_KPI_RESULTS_VW AS KPIs ON EVENTS."EventID"  = KPIs."EventID" 
+INNER JOIN EHS_DA_DMART.EVENTS_KPI_RESULTS_VW AS KPIs ON EVENTS."EventID"  = KPIs."EventID" AND KPIs."Event KPI Name" = 'Event Entered Within 24 Hours'
 INNER JOIN (
 			SELECT  
 			  	  Events."EventID"
