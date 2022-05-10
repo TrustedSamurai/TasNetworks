@@ -1,151 +1,55 @@
- CREATE VIEW Events_vw AS  
-SELECT "IncidentRootDB_KEY"
-	, Events."EventID"
-	,  To_Integer ( Events."EventID")			AS "EventID_Numeric"
-	, CASE  /*check if there is a matching record in the Injuries table.  This will indicate an injured person */
-		WHEN Injuries."EventID" = Events."EventID" THEN 'Yes'
-		ELSE 'No' 
-	  END AS "WasSomeoneInjured?"
-	, "CATEGORY"
+/***************************************************************
+ * 
+ * KPI Calculation Script.  
+ */
+ CREATE VIEW Calculated_KPI_Results as 
+SELECT DISTINCT 
+	EVENTS."EventID"
+	, 'Significant Incident Flag' AS "KPI Name"
 	, CASE 
-		WHEN "SignificantEvent" = 'X' THEN 'Yes' 
-		ELSE 'No' 
-	  END AS "SignificantEvent" 
-	, "LocationID"
-	, CASE 
-		WHEN "EventType" = 'I' THEN 'Incident' 
-		ELSE 'Near Miss' 
-	  END AS "Event Type Description" 
-	, "EventType"
-	, CASE 
-		WHEN "EventStatus"  = '00' 	THEN 'Void'
-		WHEN "EventStatus"  = '01' 	THEN 'New'
-		WHEN "EventStatus"  = '02' 	THEN 'In Progress'
-		WHEN "EventStatus"  = '03' 	THEN 'Closed'
-		WHEN "EventStatus"  = '04' 	THEN 'Reopened'
-										ELSE 'Unknown'
-	  END AS "EventStatusDesc"
-	, CASE 
-		WHEN "EventStatus"  = '00' 	THEN 'Void'
-		WHEN "EventStatus"  = '01' 	THEN 'Open'
-		WHEN "EventStatus"  = '02' 	THEN 'Open'
-		WHEN "EventStatus"  = '03' 	THEN 'Closed'
-		WHEN "EventStatus"  = '04' 	THEN 'Open'
-										ELSE 'Unknown'
-	  END AS "EventStatusOpenClosedDesc"
-	, "FollowUpActivity"
-	, "EventStatus"
-	, "EventManagerID"
-	, "EventManager"
-	, "ReportingPersonFULL_NAME"
-	, "ReportingPersonPOSITION_DESC" AS "ReportingPerson POSITIONDESC"
-	, "ReportingPersonCOMP_ORG_UNIT" AS "ReportingPerson ORGUNIT"
-	, "EventDate"
-	, "EventTime"
-	, CAST(CONCAT( CONCAT ("EventDate", ' '), "EventTime") AS DateTime) As "EventDateTime"
-	, "EventReportDate"
-	, "EventReportTime"
-	, CAST(CONCAT( CONCAT ("EventReportDate", ' '), "EventReportTime") AS DateTime) As "EventReportDateTime"
-	, CASE 
-		WHEN RIGHT("ReportingPersonID",3)= 'PVT' THEN 0 /* invalid person id - return a zero so we dont break the SQL */
-		ELSE To_Integer (RIGHT("ReportingPersonID", LENGTH ("ReportingPersonID") -1))  
-	  END AS "ReportingPersonID"
-	, CASE 
-		WHEN "PrimaryInvolvement"  = 'X' 	THEN 'TasNetworks'
-		WHEN "PrimaryInvolvement"  = '-' 	THEN '3rd Party (not contractor)'
-												ELSE 'Contractor'
-	  END AS "PrimaryInvolvement" 	
-	, "ImmediateActions"
-	, "LocationDescription"
-	, "EventDescription"
-	, "Latitude"
-	, "Longitude"
-	, "ObservationType"
-	, "EventORG_ID"
-	, "ReportingPersonRegion"
-	, "ReportingPersonPERNR"
-	, "EventCreationDate"
-	, "EventCreationTime"
-	, "REPORT_REQ_TS"
-	, "CONFIDENTIAL_TS"
-	, "STREET_HOUSE_NUM"
-	, "POSTAL_CODE"
-	, "CITY"
-	, "COUNTRY"
-	, "REGION"
-/* Identify the Event Groups for each Event */
-	, CASE 
-		WHEN EVENTGROUPS.EVENT_GROUP_PS IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "EventGroupSafety"
-	, CASE 
-		WHEN EVENTGROUPS.EVENT_GROUP_ENVIRO IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "EventGroupEnvironment"
-	, CASE 
-		WHEN EVENTGROUPS.EVENT_GROUP_ASSETS IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "EventGroupAssets"
-	, CASE 
-		WHEN EVENTGROUPS.EVENT_GROUP_COMPLIANCE IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "EventGroupCompliance"
-/* Identify the Regulators for each Event */
-	, CASE 
-		WHEN EVENTREGULATORS.EVENT_REGULATOR_AER IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "Regulator_AER" 
-	, CASE 
-		WHEN EVENTREGULATORS.EVENT_REGULATOR_WST IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "Regulator_WST"
-	, CASE 
-		WHEN EVENTREGULATORS.EVENT_REGULATOR_DPIPWE IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "Regulator_DPIPWE"
-	, CASE 
-		WHEN EVENTREGULATORS.EVENT_REGULATOR_AEMO IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "Regulator_AEMO"
-	, CASE 
-		WHEN EVENTREGULATORS.EVENT_REGULATOR_CBOS IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "Regulator_CBOS"
-	, CASE 
-		WHEN EVENTREGULATORS.EVENT_REGULATOR_Other IS NOT NULL  THEN 'Yes'
-		ELSE 'No'
-	  END AS "Regulator_Other"
-FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS Events
-LEFT OUTER JOIN (SELECT DISTINCT "EventID" FROM EHS_DA_DMART.ER_EVENTANALYSIS_INJURED WHERE ER_EVENTANALYSIS_INJURED."EventManager" IS NOT NULL ) AS Injuries ON Events."EventID" = Injuries."EventID"
-LEFT OUTER JOIN (
-			SELECT DISTINCT
-			  	  Events."EventID"
-			  	, GROUP_PS."Group Name" AS EVENT_GROUP_PS
-			  	, GROUP_ENV."Group Name" AS EVENT_GROUP_ENVIRO
-			  	, GROUP_AST."Group Name" AS EVENT_GROUP_ASSETS 
-			  	, GROUP_COMP."Group Name" AS EVENT_GROUP_COMPLIANCE
-			 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'People & Safety') AS Group_PS ON Events."EventID" = GROUP_PS."EventID"
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Environment') AS GROUP_ENV ON Events."EventID" = GROUP_ENV."EventID"
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Assets') AS GROUP_AST ON Events."EventID" = GROUP_AST."EventID"
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Group Name" FROM EHS_DA_DMART.EVENTS_GROUPS_VW WHERE "Group Name" = 'Non-Compliance') AS GROUP_COMP ON Events."EventID" = GROUP_COMP."EventID"
-			) AS EVENTGROUPS ON Events."EventID" = EVENTGROUPS."EventID"	
-LEFT OUTER JOIN (
-			SELECT DISTINCT
-			  	  REGULATORS."EventID"
-			  	, REGULATOR_AER."Regulator_Abbrev" AS EVENT_REGULATOR_AER
-			  	, REGULATOR_WST."Regulator_Abbrev" AS EVENT_REGULATOR_WST
-			  	, REGULATOR_DPIPWE."Regulator_Abbrev" AS EVENT_REGULATOR_DPIPWE
-			  	, REGULATOR_AEMO."Regulator_Abbrev" AS EVENT_REGULATOR_AEMO
-			  	, REGULATOR_CBOS."Regulator_Abbrev" AS EVENT_REGULATOR_CBOS
-			  	, REGULATOR_Other."Regulator_Abbrev" AS EVENT_REGULATOR_Other
-			 FROM EHS_DA_DMART.EVENTS_REGULATOR_VW AS REGULATORS
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'Australian Energy Regulator') 							AS REGULATOR_AER 	ON REGULATORS."EventID" = REGULATOR_AER."EventID"  
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'WorkSafe Tasmania') 									AS REGULATOR_WST 	ON REGULATORS."EventID" = REGULATOR_WST."EventID"  
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'Dept. of Primary Industry, Parks, Water & Environment') AS REGULATOR_DPIPWE ON REGULATORS."EventID" = REGULATOR_DPIPWE."EventID"  
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'Australian Energy Market Operator') 					AS REGULATOR_AEMO 	ON REGULATORS."EventID" = REGULATOR_AEMO."EventID"  
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'Consumer Building and Occup. Services') 				AS REGULATOR_CBOS 	ON REGULATORS."EventID" = REGULATOR_CBOS."EventID"  
-			 LEFT OUTER JOIN ( SELECT DISTINCT "EventID","Regulator_Abbrev" FROM EHS_DA_DMART.EVENTS_REGULATOR_VW WHERE "Regulator_Desc" = 'Other') 												AS REGULATOR_Other 	ON REGULATORS."EventID" = REGULATOR_Other."EventID"  
-			) AS EVENTREGULATORS ON Events."EventID" = EVENTREGULATORS."EventID" 		 
-WHERE Events."EventType"  IN ('I','N')
-AND "EventStatus" <> '00';
+		WHEN NonCompliance."EventID" IS NOT null  	/* Compliance incident, violation type NERR / Life Support Customer / Actual Consequence Rating Moderate or Above */
+		 AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
+		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN 1 
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
+		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN 1 
+		ELSE 0 
+	  END AS "KPI Numerator" 
+	, 1 AS "KPI Denominator"
+	, 'Identifies where a Significant Incident has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
+				, "PrimaryInvolvement" 
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
+LEFT JOIN 
+			(
+				SELECT DISTINCT "EventID" AS "EventID" 
+				FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE 
+				WHERE ("ViolationType" = 'ZEHHSS_VTC_LSCINTERRU'
+				OR "ReqREQ_ID" IN (
+									 '50001840' /* Distributor de-energisation of premises-small customers, from here down */
+									,'50001843'
+									,'50005268' /* Distributor obligations, life support equipment, from here down */
+									,'50005258'
+									,'50005259'
+									,'50005260'
+									,'50005261'
+									,'50005262'
+									,'50005263'
+									,'50005264'
+									,'50005265'
+									,'50005266'
+									,'50005267'
+									,'50005268'
+									,'50005269'
+									,'50005270'
+									,'50005271'
+									,'50005272'
+									,'50005274'
+									,'50005276'
+									,'50005277'
+									,'50005278'
+									,'50005280'
+								  ) 
+					   )
+			) AS NonCompliance ON EVENTS."EventID" = NonCompliance."EventID"
+WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
+  AND EVENTS."EventType" = 'I' /* ONLY include Incidents */
+  AND "PrimaryInvolvement"  = 'X' /* ONLY include WHERE PRIMARY Involvement IS TasNetworks */
