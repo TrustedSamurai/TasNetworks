@@ -1,0 +1,52 @@
+/***************************************************************
+ * 
+ * KPI Calculation Script.  
+ */
+CREATE VIEW Calculated_KPI_Results as
+SELECT DISTINCT 
+	EVENTS."EventID"
+	, 'Significant Incident Flag' AS "KPI Name"
+	, CASE 
+		WHEN NonCompliance."EventID" IS NOT null  	/* Compliance incident, violation type NERR / Life Support Customer / Actual Consequence Rating Moderate or Above */
+		 AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
+		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN 1 
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
+		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN 1 
+		ELSE 0 
+	  END AS "KPI Numerator" 
+	, 1 AS "KPI Denominator"
+	, 'Identifies where a Significant Incident has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
+LEFT JOIN 
+			(
+				SELECT DISTINCT "EventID" AS "EventID" 
+				FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE 
+				WHERE ("ViolationType" = 'ZEHHSS_VTC_LSCINTERRU'
+				OR "ReqREQ_ID" IN (
+									 '50001840' /* Distributor de-energisation of premises-small customers, from here down */
+									,'50001843'
+									,'50005268' /* Distributor obligations, life support equipment, from here down */
+									,'50005258'
+									,'50005259'
+									,'50005260'
+									,'50005261'
+									,'50005262'
+									,'50005263'
+									,'50005264'
+									,'50005265'
+									,'50005266'
+									,'50005267'
+									,'50005268'
+									,'50005269'
+									,'50005270'
+									,'50005271'
+									,'50005272'
+									,'50005274'
+									,'50005276'
+									,'50005277'
+									,'50005278'
+									,'50005280'
+								  ) 
+					   )
+			) AS NonCompliance ON EVENTS."EventID" = NonCompliance."EventID"
+WHERE "EventStatus" <> '00' /* ignore Voided events */
