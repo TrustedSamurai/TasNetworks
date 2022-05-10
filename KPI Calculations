@@ -1,10 +1,35 @@
 /***************************************************************
  * 
  * KPI Calculation Script. 
+ *
+ * - TRIFR Injury Count
+ * - Reportable Safety Incident Count
+ * - Significant Event Count
  *  
  */
  CREATE VIEW Calculated_KPI_Results as  
  /* 
+  * Calculate the TRIFR Injury count based on the KPI calculation rules for 2021-22
+  */
+ SELECT DISTINCT 
+	EVENTS."EventID"
+	, 'TRIFR Injury Flag' AS "KPI Name"
+	, CASE 
+		WHEN INJURIES."EventID" IS NOT null THEN 1 
+		ELSE 0 
+	  END AS "KPI Numerator" 
+	, 1 AS "KPI Denominator"
+	, 'Identifies where a TRIFR related injury was recorded - meets HSE KPI Reporting specifications' AS "KPI Description"
+ FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
+ LEFT OUTER JOIN EHS_DA_DMART.INJUREDPERSONS_VW AS INJURIES 
+			 ON EVENTS."EventID" = INJURIES."EventID" 
+			 AND INJURIES."InjuryIncidentType" = 'Compensable Recordable'
+			 AND INJURIES."InjuredPersonInjuryClsDesc" IN ('Medical Treatment Injury','Lost Time Injury','Restricted Work Injury')
+ WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
+   AND EVENTS."EventType" = 'I' /* ONLY include Incidents */
+   AND EVENTS."PrimaryInvolvement"  = 'X' /* ONLY include WHERE PRIMARY Involvement IS TasNetworks */
+ UNION
+  /* 
   * Calculate the Reportable Safety Events based on the KPI calculation rules for 2021-22
   */
  SELECT DISTINCT 
