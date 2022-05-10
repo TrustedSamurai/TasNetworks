@@ -31,8 +31,7 @@ SELECT MANDT
 		ELSE 'unassigned' 
 	  END AS "Potential Consequence Rating" 
 	, CASE 
-		WHEN NonCompliance."EventID" IS NOT null  	/* Compliance incident, violation type NERR / Life Support Customer / Actual Consequence Rating Moderate or Above */
-		 AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
 		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN 'Yes' 
 		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
 		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN 'Yes' 
