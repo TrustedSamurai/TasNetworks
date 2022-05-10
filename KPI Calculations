@@ -1,21 +1,23 @@
 /***************************************************************
  * 
- * KPI Calculation Script.  
+ * KPI Calculation Script. 
+ *  
  */
-CREATE VIEW Calculated_KPI_Results as
-SELECT DISTINCT 
+ CREATE VIEW Calculated_KPI_Results as  
+ /* 
+  * Calculate the Reportable Safety Events based on the KPI calculation rules for 2021-22
+  */
+ SELECT DISTINCT 
 	EVENTS."EventID"
-	, 'Significant Incident Flag' AS "KPI Name"
+	, 'Reportable Safety Event Flag' AS "KPI Name"
 	, CASE 
-		WHEN NonCompliance."EventID" IS NOT null  	/* Compliance incident, violation type NERR / Life Support Customer / Actual Consequence Rating Moderate or Above */
-		 AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
-		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN 1 
-		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
-		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN 1 
-		ELSE 0 
+		WHEN NonCompliance."EventID" IS NOT null 
+		AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 1 	/* Compliance incident - violation type NERR affecting a Life Support Customer */ 
+		WHEN WorkSafeTas."EventID" IS NOT null  THEN 1 	/* Reported to WorkSafe Tasmania */ 
+		ELSE 0
 	  END AS "KPI Numerator" 
 	, 1 AS "KPI Denominator"
-	, 'Identifies where a Significant Incident has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
+	, 'Identifies where a Reportable Safety Event has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
 LEFT JOIN 
 			(
@@ -49,4 +51,35 @@ LEFT JOIN
 								  ) 
 					   )
 			) AS NonCompliance ON EVENTS."EventID" = NonCompliance."EventID"
-WHERE "EventStatus" <> '00' /* ignore Voided events */
+LEFT JOIN 
+			(
+				SELECT DISTINCT EVENTDETAILS."EventID" AS "EventID" 
+				FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTDETAILS
+				LEFT OUTER JOIN EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE AS COMPLIANCE  ON EVENTDETAILS."EventID" = COMPLIANCE."EventID" 
+				WHERE COMPLIANCE."RegulatorDESCRIPTION" = 'WorkSafe Tasmania'
+				   OR EVENTDETAILS."RegulatorREGULATION" = 'ZWST'  /* Look for Worksafe Tas regulator details in Event table if missing from compliance table */
+
+			) AS WorkSafeTas ON EVENTS."EventID" = WorkSafeTas."EventID"
+WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
+  AND EVENTS."EventType" IN ('I', 'N') /* include Incidents & near misses */
+  AND EVENTS."PrimaryInvolvement"  = 'X' /* ONLY include WHERE PRIMARY Involvement IS TasNetworks */  
+ UNION 
+  /* 
+   * Calculate the Signficant Incidents based on the KPI calculation rules for 2021-22
+  */
+ SELECT DISTINCT 
+	EVENTS."EventID"
+	, 'Significant Incident Flag' AS "KPI Name"
+	, CASE 
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
+		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN 1 
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
+		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN 1 
+		ELSE 0 
+	  END AS "KPI Numerator" 
+	, 1 AS "KPI Denominator"
+	, 'Identifies where a Significant Incident has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
+WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
+  AND EVENTS."EventType" = 'I' /* ONLY include Incidents */
+  AND EVENTS."PrimaryInvolvement"  = 'X' /* ONLY include WHERE PRIMARY Involvement IS TasNetworks */
