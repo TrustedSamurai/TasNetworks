@@ -142,9 +142,9 @@ SELECT DISTINCT
 	, CASE 
 		WHEN NonCompliance."EventID" IS NOT null 
 		 AND  "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
-		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN concat('Compliance (NERR Breach) - with Actual Consequece rating of ', "Actual Consequence Rating" )
+		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN concat('Compliance (NERR Breach) - with Actual Consequece of ', "Actual Consequence Rating" )
 		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
-		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN concat('People & Safety incident with potential consequence rating of ', "Potential Consequence Rating")
+		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN concat('People & Safety incident with Potential Consequence of ', "Potential Consequence Rating")
 		ELSE ''
 	  END AS "KPI Contextual Message"
 	, 'Identifies where a Significant Incident has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
