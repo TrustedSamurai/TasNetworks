@@ -2,13 +2,13 @@
  * 
  * KPI Calculation Script. 
  *
- * - High Potential Incident Count 	- "High Potential Incident Flag"
- * - TRIFR Injury Count			- "TRIFR Injury Flag"
+ * - High Potential Incident Count 		- "High Potential Incident Flag"
+ * - TRIFR Injury Count					- "TRIFR Injury Flag"
  * - Reportable Safety Incident Count	- "Reportable Safety Event Flag"
- * - Significant Event Count		- "Significant Incident Flag"
+ * - Significant Event Count			- "Significant Incident Flag"
  *  
  */
- CREATE VIEW Calculated_KPI_Results as  
+CREATE VIEW Calculated_KPI_Results as  
   /* 
   * Calculate the High Potential Incidents  
   */
@@ -20,7 +20,11 @@ SELECT DISTINCT
 		ELSE 0 
 	  END AS "KPI Numerator" 
 	, 1 AS "KPI Denominator"
-	, 'Identifies where a TRIFR related injury was recorded - meets HSE KPI Reporting specifications' AS "KPI Description"
+	, CASE 
+		WHEN EVENT_GROUPS."EventID" IS NOT null THEN concat('Potential Consequence Rating - ',EVENT_GROUPS."Potential Consequence Rating" ) 
+		ELSE '' 
+	  END	AS "KPI Contextual Message"
+	, 'HPI is a People & Safety Near Miss with a consequence rating of Major or Severe - meets HSE KPI Reporting specifications' AS "KPI Description"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
 LEFT OUTER JOIN EHS_DA_DMART.EVENTS_GROUPS_VW AS EVENT_GROUPS 
 			ON EVENTS."EventID" = EVENT_GROUPS."EventID" 
@@ -28,7 +32,8 @@ LEFT OUTER JOIN EHS_DA_DMART.EVENTS_GROUPS_VW AS EVENT_GROUPS
 			AND EVENT_GROUPS."Potential Consequence Rating" IN ('4 - Major','5 - Severe') /* Potential Consequence is Significant */
 WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
   AND EVENTS."EventType" = 'N' /* ONLY include Near Misses */
-  AND EVENTS."PrimaryInvolvement"  IN ('X','') /* ONLY include WHERE PRIMARY Involvement IS TasNetworks or Contractor *//* 
+  AND EVENTS."PrimaryInvolvement"  IN ('X','') /* ONLY include WHERE PRIMARY Involvement IS TasNetworks or Contractor */ 
+  /* 
   * Calculate the TRIFR Injury count based on the KPI calculation rules for 2021-22
   */
  UNION 
@@ -40,6 +45,10 @@ WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
 		ELSE 0 
 	  END AS "KPI Numerator" 
 	, 1 AS "KPI Denominator"
+	, CASE 
+		WHEN INJURIES."EventID" IS NOT null THEN concat ( 'Compensable Recordable - ', INJURIES."InjuredPersonInjuryClsDesc" )
+		ELSE '' 
+	  END AS "KPI Contextual Message"
 	, 'Identifies where a TRIFR related injury was recorded - meets HSE KPI Reporting specifications' AS "KPI Description"
  FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
  LEFT OUTER JOIN EHS_DA_DMART.INJUREDPERSONS_VW AS INJURIES 
@@ -63,7 +72,13 @@ WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
 		ELSE 0
 	  END AS "KPI Numerator" 
 	, 1 AS "KPI Denominator"
-	, 'Identifies where a Reportable Safety Event has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
+	, CASE 
+		WHEN NonCompliance."EventID" IS NOT null 
+		AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'AER - Compliance - NERR Life Support Customer' 	/* Compliance incident - violation type NERR affecting a Life Support Customer */ 
+		WHEN WorkSafeTas."EventID" IS NOT null  THEN 'WorkSafe - PeopleSafety' 	/* Reported to WorkSafe Tasmania */ 
+		ELSE ''
+	  END AS "KPI Contextual Message"
+	, 'Identifies where an event has been reported to Worksafe or AER(for lifesupport) has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
 LEFT JOIN 
 			(
@@ -104,7 +119,6 @@ LEFT JOIN
 				LEFT OUTER JOIN EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE AS COMPLIANCE  ON EVENTDETAILS."EventID" = COMPLIANCE."EventID" 
 				WHERE COMPLIANCE."RegulatorDESCRIPTION" = 'WorkSafe Tasmania'
 				   OR EVENTDETAILS."RegulatorREGULATION" = 'ZWST'  /* Look for Worksafe Tas regulator details in Event table if missing from compliance table */
-
 			) AS WorkSafeTas ON EVENTS."EventID" = WorkSafeTas."EventID"
 WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
   AND EVENTS."EventType" IN ('I', 'N') /* include Incidents & near misses */
@@ -117,15 +131,24 @@ WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
 	EVENTS."EventID"
 	, 'Significant Incident Flag' AS "KPI Name"
 	, CASE 
-		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'  /* Compliance incident,  / Actual Consequence Rating Moderate, Major or Severe */
 		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN 1 
-		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'      /* People-Safety incident,  / Potential Consequence Rating Major or Severe */
 		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN 1 
 		ELSE 0 
 	  END AS "KPI Numerator" 
 	, 1 AS "KPI Denominator"
+	, CASE 
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'  /* Compliance incident,  / Actual Consequence Rating Moderate, Major or Severe */
+		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN concat('Compliance - with Actual Consequece rating of ', ActualCons.TXTLG )
+		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'      /* People-Safety incident,  / Potential Consequence Rating Major or Severe */
+		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN concat('People & Safety incident with potential consequence rating of ', PotentialCons.TXTLG )
+		ELSE ''
+	  END AS "KPI Contextual Message"
 	, 'Identifies where a Significant Incident has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
 FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
+LEFT OUTER JOIN EHS_DA_DMART."PotentialConsqCode" AS ActualCons ON EVENTS."GroupZZACTUAL_CONS" = ActualCons."Code" 
+LEFT OUTER JOIN EHS_DA_DMART."PotentialConsqCode" AS PotentialCons ON EVENTS."GroupZZPOTENTIAL_CONS" = PotentialCons."Code" 
 WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
   AND EVENTS."EventType" = 'I' /* ONLY include Incidents */
   AND EVENTS."PrimaryInvolvement"  = 'X' /* ONLY include WHERE PRIMARY Involvement IS TasNetworks */
