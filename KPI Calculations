@@ -75,7 +75,7 @@ WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
 	, CASE 
 		WHEN NonCompliance."EventID" IS NOT null 
 		AND "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL' THEN 'AER - Compliance - NERR Life Support Customer' 	/* Compliance incident - violation type NERR affecting a Life Support Customer */ 
-		WHEN WorkSafeTas."EventID" IS NOT null  THEN 'WorkSafe - PeopleSafety' 	/* Reported to WorkSafe Tasmania */ 
+		WHEN WorkSafeTas."EventID" IS NOT null  THEN 'WorkSafe - People & Safety' 	/* Reported to WorkSafe Tasmania */ 
 		ELSE ''
 	  END AS "KPI Contextual Message"
 	, 'Identifies where an event has been reported to Worksafe or AER(for lifesupport) has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
@@ -142,7 +142,7 @@ WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
 		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'  /* Compliance incident,  / Actual Consequence Rating Moderate, Major or Severe */
 		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN concat('Compliance - with Actual Consequece rating of ', ActualCons.TXTLG )
 		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'      /* People-Safety incident,  / Potential Consequence Rating Major or Severe */
-		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN concat('People & Safety incident with potential consequence rating of ', PotentialCons.TXTLG )
+		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN concat('People & Safety incident with Potential Consequence rating of ', PotentialCons.TXTLG )
 		ELSE ''
 	  END AS "KPI Contextual Message"
 	, 'Identifies where a Significant Incident has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
