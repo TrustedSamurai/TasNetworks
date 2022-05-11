@@ -142,14 +142,14 @@ SELECT DISTINCT
 	, CASE 
 		WHEN NonCompliance."EventID" IS NOT null 
 		 AND  "GroupINC_GROUP" = 'EHHSS_IGR_NOT_OF_VIOL'
-		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN concat('Compliance - with Actual Consequece rating of ', ActualCons.TXTLG )
+		 AND  "GroupZZACTUAL_CONS" IN ('03','04','05') THEN concat('Compliance (NERR Breach) - with Actual Consequece rating of ', "Actual Consequence Rating" )
 		WHEN  "GroupINC_GROUP" = 'EHHSS_IGR_OCC_INC'/* People-Safety incident,  / Potential Consequence Rating Major or Severe */
-		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN concat('People & Safety incident with potential consequence rating of ', PotentialCons.TXTLG )
+		 AND  "GroupZZPOTENTIAL_CONS" IN ('04','05') THEN concat('People & Safety incident with potential consequence rating of ', "Potential Consequence Rating")
 		ELSE ''
 	  END AS "KPI Contextual Message"
 	, 'Identifies where a Significant Incident has occurred - meets HSE KPI Reporting specifications' AS "KPI Description"
-FROM EHS_DA_DMART.ER_EVENTANALYSIS_BASIC_GROUPS AS EVENTS
-LEFT JOIN 
+FROM EHS_DA_DMART.EVENTS_VW AS EVENTS
+LEFT OUTER JOIN 
 			(
 				SELECT DISTINCT "EventID" AS "EventID" 
 				FROM EHS_DA_DMART.ER_EVENTANALYSIS_NONCOMPLIANCE 
@@ -180,9 +180,11 @@ LEFT JOIN
 									,'50005280'
 								  ) 
 					   )
-			) AS NonCompliance ON EVENTS."EventID" = NonCompliance."EventID"
-LEFT OUTER JOIN EHS_DA_DMART."PotentialConsqCode" AS ActualCons ON EVENTS."GroupZZACTUAL_CONS" = ActualCons."Code" 
-LEFT OUTER JOIN EHS_DA_DMART."PotentialConsqCode" AS PotentialCons ON EVENTS."GroupZZPOTENTIAL_CONS" = PotentialCons."Code" 
+			) AS NonCompliance ON EVENTS."EventID" = NonCompliance."EventID" 
+LEFT OUTER JOIN EHS_DA_DMART.EVENTS_GROUPS_VW AS GROUPS ON 	EVENTS."EventID" = GROUPS."EventID"  /* logic checks here required to remove duplicate rows */
+														AND ( (GROUPS."Group Name" = 'Non-Compliance' AND "GroupZZACTUAL_CONS" IN ('03','04','05')	)
+														 OR    (GROUPS."Group Name" = 'People & Safety'	AND "GroupZZPOTENTIAL_CONS" IN ('04','05'))
+														     )
 WHERE EVENTS."EventStatus" <> '00' /* ignore Voided events */
   AND EVENTS."EventType" = 'I' /* ONLY include Incidents */
-  AND EVENTS."PrimaryInvolvement"  = 'X' /* ONLY include WHERE PRIMARY Involvement IS TasNetworks */
+  AND EVENTS."PrimaryInvolvement"  = 'TasNetworks' 
