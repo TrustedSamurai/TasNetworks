@@ -2,12 +2,16 @@
  * 
  * KPI Calculation Script. 
  *
- * - High Potential Incident Count
- * - TRIFR Injury Count
- * - Reportable Safety Incident Count
- * - Significant Event Count
+ * - High Potential Incident Count 	- "High Potential Incident Flag"
+ * - TRIFR Injury Count			- "TRIFR Injury Flag"
+ * - Reportable Safety Incident Count	- "Reportable Safety Event Flag"
+ * - Significant Event Count		- "Significant Incident Flag"
  *  
  */
+ CREATE VIEW Calculated_KPI_Results as  
+  /* 
+  * Calculate the High Potential Incidents  
+  */
 SELECT DISTINCT 
 	EVENTS."EventID"
 	, 'High Potential Incident Flag' AS "KPI Name"
