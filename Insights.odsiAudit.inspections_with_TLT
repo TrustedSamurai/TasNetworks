@@ -1,0 +1,80 @@
+CREATE VIEW [OdsiAudit].inspections_with_TLT
+AS
+SELECT inspections.[audit_id]
+      ,[name]
+      ,[archived]
+	  , CASE WHEN New_Owners.new_owner_name IS NULL THEN inspections.[owner_name]
+			ELSE New_Owners.new_owner_ID
+		END AS [owner_name]
+ 	  , CASE WHEN New_Owners.new_owner_ID IS NULL THEN inspections.owner_id
+			ELSE New_Owners.new_owner_ID
+		END AS [owner_id]
+     ,[author_name]
+      ,[author_id]
+      ,[score]
+      ,[max_score]
+      ,[score_percentage]
+      ,[duration]
+      ,[template_id]
+      ,[organisation_id]
+      ,[template_name]
+      ,[template_author]
+      ,[site_id]
+      ,[date_started]
+      ,[date_completed]
+      ,[date_modified]
+      ,[created_at]
+      ,[modified_at]
+      ,[exported_at]
+      ,[document_no]
+      ,[prepared_by]
+      ,[location]
+      ,[conducted_on]
+      ,[personnel]
+      ,[client_site]
+      ,[latitude]
+      ,[longitude]
+      ,[web_report_link]
+  FROM [odsiAudit].[inspections]
+  LEFT OUTER JOIN (
+					SELECT DISTINCT
+						  cast ([audit_id] as varchar) as audit_id
+						  --,cast ([type] as varchar) as [type]
+						  --,cast ([label] as varchar) as [label]
+						  --,cast ([response] as varchar) as [response]
+						  , CASE cast ([response] as varchar)
+								when 'Dayna Tyler'			THEN 'tlt_Kathryn Hansson'
+								when 'Kathryn Hansson'		THEN 'tlt_Kathryn Hansson'
+								when 'Ed Chetcuti'			THEN 'tlt_Ed Chetcuti'
+								when 'Sean McGoldrick'		THEN 'tlt_Sean McGoldrick'
+								when 'Ross Burridge'		THEN 'tlt_Ross Burridge'
+								when 'Wayne Tucker'			THEN 'tlt_Wayne Tucker'
+								when 'Renee Anderson'		THEN 'tlt_Renee Anderson'
+								when 'Mike Paine'			THEN 'tlt_Mike Paine'
+								when 'Michael Westenburg'	THEN 'tlt_Michael Westenburg'
+								when 'Michael Chan'			THEN 'tlt_Michael Chan'
+								when 'Andrew Davis'			THEN 'tlt_Andrew Davis'
+								when 'Michael Ash'			THEN 'tlt_Michael Ash'
+								when 'Bess Clark'			THEN 'tlt_Bess Clark'
+								else null
+							end  as new_owner_ID
+						  , CASE cast ([response] as varchar)
+								when 'Dayna Tyler'			THEN 'Kathryn Hansson'
+								when 'Kathryn Hansson'		THEN 'Kathryn Hansson'
+								when 'Ed Chetcuti'			THEN 'Ed Chetcuti'
+								when 'Sean McGoldrick'		THEN 'Sean McGoldrick'
+								when 'Ross Burridge'		THEN 'Ross Burridge'
+								when 'Wayne Tucker'			THEN 'Wayne Tucker'
+								when 'Renee Anderson'		THEN 'Renee Anderson'
+								when 'Mike Paine'			THEN 'Mike Paine'
+								when 'Michael Westenburg'	THEN 'Michael Westenburg'
+								when 'Michael Chan'			THEN 'Michael Chan'
+								when 'Andrew Davis'			THEN 'Andrew Davis'
+								when 'Michael Ash'			THEN 'Michael Ash'
+								when 'Bess Clark'			THEN 'Bess Clark'
+								else null
+							end  as new_owner_name
+					FROM [Insights].[odsiAudit].[inspection_items]
+					WHERE cast ([type] as varchar) = 'textsingle'
+					  AND cast([label] as varchar) like '%inspected team member%'
+					) AS New_Owners ON cast ([inspections].audit_id as varchar) = cast (New_Owners.audit_id as varchar);
