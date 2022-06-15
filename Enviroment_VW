@@ -1,0 +1,80 @@
+CREATE VIEW Environment_vw AS  
+SELECT 
+	  "EventID"
+	,  To_Integer ( Environment."EventID")			AS "EventID_Numeric"
+	, CASE 
+		WHEN "SignificantEvent" = 'X' THEN 'Yes' 
+		ELSE 'No' 
+	  END AS "SignificantEvent" 
+	, "EventStatus"
+	, CASE 
+		WHEN "EventStatus"  = '00' 	THEN 'Void'
+		WHEN "EventStatus"  = '01' 	THEN 'New'
+		WHEN "EventStatus"  = '02' 	THEN 'In Progress'
+		WHEN "EventStatus"  = '03' 	THEN 'Closed'
+		WHEN "EventStatus"  = '04' 	THEN 'Reopened'
+									ELSE 'Unknown'
+	  END AS "EventStatusDesc"
+	, CASE 
+		WHEN "EventStatus"  = '00' 	THEN 'Void'
+		WHEN "EventStatus"  = '01' 	THEN 'Open'
+		WHEN "EventStatus"  = '02' 	THEN 'Open'
+		WHEN "EventStatus"  = '03' 	THEN 'Closed'
+		WHEN "EventStatus"  = '04' 	THEN 'Open'
+									ELSE 'Unknown'
+	  END AS "EventStatusOpenClosedDesc"
+	, "EventDate"
+	, "EventReportDate"
+	, "EventManagerID"
+	, "EventManager"
+	, "EventType"
+	, CASE 
+		WHEN "PrimaryInvolvement"  = 'X' 	THEN 'TasNetworks'
+		WHEN "PrimaryInvolvement"  = '-' 	THEN '3rd Party (not contractor)'
+											ELSE 'Contractor'
+	  END AS "PrimaryInvolvement" 	
+	, "EventDescription"
+	, "FollowUpActivity"
+	, "ImmediateActions"
+	, "Latitude"
+	, "Longitude"
+	, CASE 
+		WHEN RIGHT("ReportingPersonID",3)= 'PVT' THEN 0 /* invalid person id - return a zero so we dont break the SQL */
+		ELSE To_Integer (RIGHT("ReportingPersonID", LENGTH ("ReportingPersonID") -1))  
+	  END AS "ReportingPersonID"
+	, "ReportingPersonFULL_NAME"
+	, "EnvTYPE"
+	, "EnvDESCRIPTION"
+	, "EnvDESCRIPTION_LONG"
+	, "EnvSIZE"
+	, "EnvSubtype"
+	, "EnvReleaseDescription"
+	, "EnvID"
+	, "EnvMATERIAL_DESC"
+	, "EnvSTATE"
+	, "EnvAFFECTED_LAND"
+	, "EnvWATER_INV_TS"
+	, "EnvREL_UNIT"
+	, "EnvREC_UNIT"
+	, "EnvREC_METHOD"
+	, "EnvDISP_METHOD"
+	, "EnvDISP_SITE"
+	, "EnvDISP_UNIT"
+	, "EnvWASTE_TYPE"
+	, "EnvMETHOD"
+	, "EnvResponseDesc"
+	, "RegulatorREGULATION"
+	, "GroupINC_GROUP"
+	, "EnvREL"
+	, "EnvREC"
+	, "EnvDISP"
+	, "GroupZZPOTENTIAL_CONS"
+	, "GroupZZACTUAL_CONS"
+	, "EnvREL_MEAS"
+	, "EnvREC_MEAS"
+	, "EnvDISP_MEAS"
+	, "CountEnv"
+	, "CountEventID"
+FROM EHS_DA_DMART.ER_EVENTANALYSIS_ENVIRONMENTAL AS Environment
+WHERE "GroupINC_GROUP" = 'EHHSS_IGR_RELEASE'  /* LIMIT TO Event_Group OF Environment */
+;
