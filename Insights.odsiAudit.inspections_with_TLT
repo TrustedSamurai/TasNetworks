@@ -43,7 +43,7 @@ SELECT inspections.[audit_id]
 						  --,cast ([label] as varchar) as [label]
 						  --,cast ([response] as varchar) as [response]
 						  , CASE cast ([response] as varchar)
-								when 'Dayna Tyler'			THEN 'tlt_Kathryn Hansson'
+								when 'Dayna Tyler'			THEN 'tlt_Dayna Tyler'
 								when 'Kathryn Hansson'		THEN 'tlt_Kathryn Hansson'
 								when 'Ed Chetcuti'			THEN 'tlt_Ed Chetcuti'
 								when 'Sean McGoldrick'		THEN 'tlt_Sean McGoldrick'
@@ -59,7 +59,7 @@ SELECT inspections.[audit_id]
 								else null
 							end  as new_owner_ID
 						  , CASE cast ([response] as varchar)
-								when 'Dayna Tyler'			THEN 'Kathryn Hansson'
+								when 'Dayna Tyler'			THEN 'Dayna Tyler'
 								when 'Kathryn Hansson'		THEN 'Kathryn Hansson'
 								when 'Ed Chetcuti'			THEN 'Ed Chetcuti'
 								when 'Sean McGoldrick'		THEN 'Sean McGoldrick'
