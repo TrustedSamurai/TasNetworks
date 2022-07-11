@@ -3,13 +3,13 @@ AS
 SELECT inspections.[audit_id]
       ,[name]
       ,[archived]
-	  , CASE WHEN New_Owners.new_owner_name IS NULL THEN inspections.[owner_name]
-			ELSE New_Owners.new_owner_ID
-		END AS [owner_name]
- 	  , CASE WHEN New_Owners.new_owner_ID IS NULL THEN inspections.owner_id
-			ELSE New_Owners.new_owner_ID
-		END AS [owner_id]
-     ,[author_name]
+	  , CASE WHEN Region.response IS NULL THEN '' ELSE Region.response END AS [Region]
+ 	  , CASE WHEN WorkingGroup.response IS NULL THEN '' ELSE WorkingGroup.response END AS [WorkingGroup]
+	  , CASE WHEN New_Owners.new_owner_name IS NULL THEN inspections.[owner_name] ELSE New_Owners.new_owner_ID END AS [owner_name]
+ 	  , CASE WHEN New_Owners.new_owner_ID IS NULL THEN inspections.owner_id	ELSE New_Owners.new_owner_ID END AS [owner_id]
+      ,[owner_name]	AS [original_owner_name]
+      ,[owner_id]	AS [original_owner_id]
+	  ,[author_name]
       ,[author_id]
       ,[score]
       ,[max_score]
@@ -36,6 +36,16 @@ SELECT inspections.[audit_id]
       ,[longitude]
       ,[web_report_link]
   FROM [odsiAudit].[inspections]
+  LEFT OUTER JOIN (
+					SELECT DISTINCT cast ([audit_id] as varchar) as audit_id ,cast( response as varchar) as response
+					FROM [Insights].[odsiAudit].[inspection_items]
+					WHERE cast ([type] as varchar) = 'list' AND cast([label] as varchar) LIKE '%Region%'
+					) AS Region ON cast ([inspections].audit_id as varchar) = cast (Region.audit_id as varchar)
+  LEFT OUTER JOIN (
+					SELECT DISTINCT cast ([audit_id] as varchar) as audit_id ,cast( response as varchar) as response
+					FROM [Insights].[odsiAudit].[inspection_items]
+					WHERE cast ([type] as varchar) = 'textsingle' AND cast([label] as varchar) LIKE '%inspected workgroup%'
+					) AS WorkingGroup ON cast ([inspections].audit_id as varchar) = cast (WorkingGroup.audit_id as varchar)					
   LEFT OUTER JOIN (
 					SELECT DISTINCT
 						  cast ([audit_id] as varchar) as audit_id
@@ -77,4 +87,5 @@ SELECT inspections.[audit_id]
 					FROM [Insights].[odsiAudit].[inspection_items]
 					WHERE cast ([type] as varchar) = 'textsingle'
 					  AND cast([label] as varchar) like '%inspected team member%'
-					) AS New_Owners ON cast ([inspections].audit_id as varchar) = cast (New_Owners.audit_id as varchar);
+					) AS New_Owners ON cast ([inspections].audit_id as varchar) = cast (New_Owners.audit_id as varchar)
+;
